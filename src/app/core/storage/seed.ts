@@ -126,7 +126,14 @@ export function createSeedBoard(now: Date): BoardState {
 
   const lists: List[] = [
     { id: newId(), name: 'Trabajo', color: 'blue', order: 0, createdAt, updatedAt: createdAt },
-    { id: newId(), name: 'Personal', color: 'emerald', order: ORDER_STEP, createdAt, updatedAt: createdAt },
+    {
+      id: newId(),
+      name: 'Personal',
+      color: 'emerald',
+      order: ORDER_STEP,
+      createdAt,
+      updatedAt: createdAt,
+    },
   ];
   const listIdByName = new Map(lists.map((list) => [list.name, list.id]));
 

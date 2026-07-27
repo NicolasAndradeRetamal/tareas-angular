@@ -58,7 +58,13 @@ describe('BoardStorage', () => {
     const task = makeTask();
     driver.write(
       BOARD_STORAGE_KEY,
-      JSON.stringify({ schemaVersion: 1, savedAt: '2026-07-01T00:00:00.000Z', seeded: true, lists: [list], tasks: [task] }),
+      JSON.stringify({
+        schemaVersion: 1,
+        savedAt: '2026-07-01T00:00:00.000Z',
+        seeded: true,
+        lists: [list],
+        tasks: [task],
+      }),
     );
 
     const result = storage.load();
@@ -117,7 +123,11 @@ describe('BoardStorage', () => {
   it('moves tasks with a non-numeric order to the end of their column', () => {
     const list = makeList();
     const first = makeTask({ id: 'first', order: 100 });
-    const broken = makeTask({ id: 'broken', order: Number.NaN as unknown as number, createdAt: '2026-07-02T00:00:00.000Z' });
+    const broken = makeTask({
+      id: 'broken',
+      order: Number.NaN as unknown as number,
+      createdAt: '2026-07-02T00:00:00.000Z',
+    });
     driver.write(
       BOARD_STORAGE_KEY,
       JSON.stringify({
@@ -178,7 +188,9 @@ describe('BoardStorage', () => {
       remove: () => {},
     };
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [{ provide: STORAGE_DRIVER, useValue: failingDriver }] });
+    TestBed.configureTestingModule({
+      providers: [{ provide: STORAGE_DRIVER, useValue: failingDriver }],
+    });
     const failingStorage = TestBed.inject(BoardStorage);
 
     const result = failingStorage.save({ lists: [makeList()], tasks: [] }, { seeded: false });

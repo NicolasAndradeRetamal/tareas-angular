@@ -7,10 +7,14 @@
     <div class="flex flex-col gap-6 px-6 py-6">
       @for (group of groups; track group.scope) {
         <section>
-          <h3 class="mb-2 text-2xs font-semibold text-ink-subtle uppercase tracking-caps">{{ group.scope }}</h3>
+          <h3 class="mb-2 text-2xs font-semibold text-ink-subtle uppercase tracking-caps">
+            {{ group.scope }}
+          </h3>
           <ul class="flex flex-col">
             @for (entry of group.entries; track entry.action) {
-              <li class="flex items-center justify-between gap-4 border-b border-line/60 py-2 last:border-0">
+              <li
+                class="flex items-center justify-between gap-4 border-b border-line/60 py-2 last:border-0"
+              >
                 <span class="text-sm text-ink">{{ entry.action }}</span>
                 <span class="flex shrink-0 items-center gap-0.5">
                   @for (key of entry.keys; track key) {

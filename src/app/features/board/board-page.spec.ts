@@ -84,7 +84,9 @@ describe('BoardPage', () => {
   });
 
   it('offers no drag handle while several lists share a column', async () => {
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('.task-card__handle').length).toBe(0);
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.task-card__handle').length,
+    ).toBe(0);
 
     fixture.componentRef.setInput('listId', board.lists()[0].id);
     await fixture.whenStable();

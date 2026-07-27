@@ -1,5 +1,15 @@
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, ElementRef, HostListener, computed, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import type { List } from '../../../core/models/list';
 import { PRIORITY_WEIGHT, TASK_STATUSES, STATUS_LABELS } from '../../../core/models/task';
 import type { Task, TaskStatus } from '../../../core/models/task';

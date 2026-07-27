@@ -99,14 +99,10 @@
   --list-violet: #7c3aed;
 
   --elev-1: 0 1px 2px 0 rgb(23 23 35 / 0.06);
-  --elev-2:
-    0 1px 3px 0 rgb(23 23 35 / 0.1), 0 1px 2px -1px rgb(23 23 35 / 0.08);
-  --elev-3:
-    0 8px 20px -6px rgb(23 23 35 / 0.16), 0 2px 6px -2px rgb(23 23 35 / 0.1);
-  --elev-4:
-    0 20px 44px -12px rgb(23 23 35 / 0.28), 0 4px 12px -4px rgb(23 23 35 / 0.14);
-  --elev-drag:
-    0 16px 32px -8px rgb(23 23 35 / 0.3), 0 4px 8px -4px rgb(23 23 35 / 0.2);
+  --elev-2: 0 1px 3px 0 rgb(23 23 35 / 0.1), 0 1px 2px -1px rgb(23 23 35 / 0.08);
+  --elev-3: 0 8px 20px -6px rgb(23 23 35 / 0.16), 0 2px 6px -2px rgb(23 23 35 / 0.1);
+  --elev-4: 0 20px 44px -12px rgb(23 23 35 / 0.28), 0 4px 12px -4px rgb(23 23 35 / 0.14);
+  --elev-drag: 0 16px 32px -8px rgb(23 23 35 / 0.3), 0 4px 8px -4px rgb(23 23 35 / 0.2);
 }
 
 /* Dark is not an inversion: it keeps its own surface hierarchy and lifts every accent. */
@@ -162,14 +158,10 @@
 
   /* Shadows barely read on dark surfaces: depth comes from the surface step and the border. */
   --elev-1: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-  --elev-2:
-    0 2px 6px -1px rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.4);
-  --elev-3:
-    0 10px 24px -6px rgb(0 0 0 / 0.6), 0 2px 6px -2px rgb(0 0 0 / 0.45);
-  --elev-4:
-    0 24px 56px -12px rgb(0 0 0 / 0.75), 0 6px 16px -6px rgb(0 0 0 / 0.55);
-  --elev-drag:
-    0 18px 36px -10px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(192 132 252 / 0.35);
+  --elev-2: 0 2px 6px -1px rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+  --elev-3: 0 10px 24px -6px rgb(0 0 0 / 0.6), 0 2px 6px -2px rgb(0 0 0 / 0.45);
+  --elev-4: 0 24px 56px -12px rgb(0 0 0 / 0.75), 0 6px 16px -6px rgb(0 0 0 / 0.55);
+  --elev-drag: 0 18px 36px -10px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(192 132 252 / 0.35);
 }
 
 /* inline: utilities embed the raw variable so the .dark override applies per element. */

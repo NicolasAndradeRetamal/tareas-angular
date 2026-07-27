@@ -40,7 +40,13 @@ function setup(lists: List[], tasks: Task[]): BoardViewStore {
   const driver = new MemoryStorageDriver();
   driver.write(
     BOARD_STORAGE_KEY,
-    JSON.stringify({ schemaVersion: CURRENT_SCHEMA_VERSION, savedAt: '2026-07-01T00:00:00.000Z', seeded: false, lists, tasks }),
+    JSON.stringify({
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      savedAt: '2026-07-01T00:00:00.000Z',
+      seeded: false,
+      lists,
+      tasks,
+    }),
   );
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({ providers: [{ provide: STORAGE_DRIVER, useValue: driver }] });
@@ -66,7 +72,11 @@ describe('BoardViewStore', () => {
 
   it('filters pending vs completed', () => {
     const pending = makeTask({ id: 'a', status: 'todo' });
-    const completed = makeTask({ id: 'b', status: 'done', completedAt: '2026-07-01T00:00:00.000Z' });
+    const completed = makeTask({
+      id: 'b',
+      status: 'done',
+      completedAt: '2026-07-01T00:00:00.000Z',
+    });
     const view = setup([makeList()], [pending, completed]);
 
     view.setStatusFilter('pending');
@@ -97,7 +107,12 @@ describe('BoardViewStore', () => {
   it('combines multiple filters', () => {
     const match = makeTask({ id: 'a', priority: 'high', status: 'todo' });
     const wrongPriority = makeTask({ id: 'b', priority: 'low', status: 'todo' });
-    const wrongStatus = makeTask({ id: 'c', priority: 'high', status: 'done', completedAt: '2026-07-01T00:00:00.000Z' });
+    const wrongStatus = makeTask({
+      id: 'c',
+      priority: 'high',
+      status: 'done',
+      completedAt: '2026-07-01T00:00:00.000Z',
+    });
     const view = setup([makeList()], [match, wrongPriority, wrongStatus]);
 
     view.setPriorityFilter('high');

@@ -23,7 +23,9 @@
     <p [id]="descriptionId" class="mt-3 text-base text-ink-muted">{{ message() }}</p>
     <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <app-button variant="secondary" size="lg" (clicked)="cancelled.emit()">Cancelar</app-button>
-      <app-button variant="danger" size="lg" (clicked)="confirmed.emit()">{{ confirmLabel() }}</app-button>
+      <app-button variant="danger" size="lg" (clicked)="confirmed.emit()">{{
+        confirmLabel()
+      }}</app-button>
     </div>
   </div>
 </app-dialog>

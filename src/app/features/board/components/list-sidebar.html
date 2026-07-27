@@ -42,7 +42,12 @@
 
       @if (openMenuFor() === entry.list.id) {
         <div class="list-row__menu" role="menu">
-          <button type="button" role="menuitem" class="list-row__menu-item" (click)="runAction(() => renameList.emit(entry.list.id))">
+          <button
+            type="button"
+            role="menuitem"
+            class="list-row__menu-item"
+            (click)="runAction(() => renameList.emit(entry.list.id))"
+          >
             <app-icon name="pencil" [size]="16" />
             Renombrar
           </button>

@@ -11,15 +11,15 @@ import { Icon } from '../../../shared/ui/icon';
 import { TaskCard } from './task-card';
 
 const STATUS_ICON: Record<TaskStatus, IconName> = {
-  'todo': 'circle-dashed',
+  todo: 'circle-dashed',
   'in-progress': 'circle-half',
-  'done': 'circle-check',
+  done: 'circle-check',
 };
 
 const STATUS_TEXT_CLASS: Record<TaskStatus, string> = {
-  'todo': 'text-status-todo',
+  todo: 'text-status-todo',
   'in-progress': 'text-status-progress',
-  'done': 'text-status-done',
+  done: 'text-status-done',
 };
 
 @Component({

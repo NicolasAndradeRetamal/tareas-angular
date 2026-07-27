@@ -139,7 +139,9 @@ export class BoardStore {
       if (!existing) return current;
 
       const nextTitle =
-        changes.title !== undefined ? changes.title.trim().slice(0, TASK_TITLE_MAX_LENGTH) : existing.title;
+        changes.title !== undefined
+          ? changes.title.trim().slice(0, TASK_TITLE_MAX_LENGTH)
+          : existing.title;
       if (nextTitle.length === 0) {
         throw new Error('Task title must not be empty');
       }
@@ -165,7 +167,9 @@ export class BoardStore {
       let order = existing.order;
       if (columnChanged) {
         const destination = current.tasks
-          .filter((task) => task.id !== id && task.listId === nextListId && task.status === nextStatus)
+          .filter(
+            (task) => task.id !== id && task.listId === nextListId && task.status === nextStatus,
+          )
           .sort(byOrder);
         order = rankBetween(destination.at(-1)?.order ?? null, null);
       }
@@ -202,7 +206,9 @@ export class BoardStore {
       if (!existing || existing.status === status) return current;
 
       const destination = current.tasks
-        .filter((task) => task.id !== id && task.listId === existing.listId && task.status === status)
+        .filter(
+          (task) => task.id !== id && task.listId === existing.listId && task.status === status,
+        )
         .sort(byOrder);
       const order = rankBetween(null, destination[0]?.order ?? null);
 
@@ -232,11 +238,15 @@ export class BoardStore {
       if (!existing) return current;
 
       const destinationColumn = current.tasks
-        .filter((task) => task.id !== id && task.listId === target.listId && task.status === target.status)
+        .filter(
+          (task) =>
+            task.id !== id && task.listId === target.listId && task.status === target.status,
+        )
         .sort(byOrder);
       const clampedIndex = Math.max(0, Math.min(target.targetIndex, destinationColumn.length));
       const before = clampedIndex > 0 ? destinationColumn[clampedIndex - 1].order : null;
-      const after = clampedIndex < destinationColumn.length ? destinationColumn[clampedIndex].order : null;
+      const after =
+        clampedIndex < destinationColumn.length ? destinationColumn[clampedIndex].order : null;
 
       const moved: Task = {
         ...existing,
@@ -257,7 +267,9 @@ export class BoardStore {
         ];
         const rebalanced = rebalance(wholeColumn);
         const orderById = new Map(rebalanced.map((task) => [task.id, task.order]));
-        tasks = tasks.map((task) => (orderById.has(task.id) ? { ...task, order: orderById.get(task.id) as number } : task));
+        tasks = tasks.map((task) =>
+          orderById.has(task.id) ? { ...task, order: orderById.get(task.id) as number } : task,
+        );
       }
 
       return { ...current, tasks };
@@ -277,7 +289,8 @@ export class BoardStore {
     const clampedName = name.slice(0, LIST_NAME_MAX_LENGTH);
 
     this.commit('create-list', (current) => {
-      const lastOrder = current.lists.length > 0 ? [...current.lists].sort(byOrder).at(-1)?.order ?? null : null;
+      const lastOrder =
+        current.lists.length > 0 ? ([...current.lists].sort(byOrder).at(-1)?.order ?? null) : null;
       const list: List = {
         id,
         name: clampedName,
@@ -341,7 +354,9 @@ export class BoardStore {
         const whole = [...rest.slice(0, clampedIndex), moved, ...rest.slice(clampedIndex)];
         const rebalanced = rebalance(whole);
         const orderById = new Map(rebalanced.map((list) => [list.id, list.order]));
-        lists = lists.map((list) => (orderById.has(list.id) ? { ...list, order: orderById.get(list.id) as number } : list));
+        lists = lists.map((list) =>
+          orderById.has(list.id) ? { ...list, order: orderById.get(list.id) as number } : list,
+        );
       }
 
       return { ...current, lists };

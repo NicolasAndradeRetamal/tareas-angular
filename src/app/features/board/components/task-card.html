@@ -9,7 +9,9 @@
       type="button"
       role="checkbox"
       [attr.aria-checked]="task().status === 'done'"
-      [attr.aria-label]="(task().status === 'done' ? 'Reabrir: ' : 'Marcar como completada: ') + task().title"
+      [attr.aria-label]="
+        (task().status === 'done' ? 'Reabrir: ' : 'Marcar como completada: ') + task().title
+      "
       [attr.tabindex]="roving() ? 0 : -1"
       class="task-checkbox mt-0.5 shrink-0"
       [class.task-checkbox--checked]="task().status === 'done'"
@@ -48,9 +50,16 @@
   }
 
   <div class="flex h-5 flex-wrap items-center gap-2 text-xs">
-    <div class="flex items-end gap-0.5" role="img" [attr.aria-label]="'Prioridad: ' + (task().priority | priorityLabel)">
+    <div
+      class="flex items-end gap-0.5"
+      role="img"
+      [attr.aria-label]="'Prioridad: ' + (task().priority | priorityLabel)"
+    >
       @for (active of priorityBars(); track $index) {
-        <span class="h-2.5 w-0.5 rounded-[2px]" [class]="active ? priorityBarClass() : 'bg-line-strong/40'"></span>
+        <span
+          class="h-2.5 w-0.5 rounded-[2px]"
+          [class]="active ? priorityBarClass() : 'bg-line-strong/40'"
+        ></span>
       }
     </div>
 
@@ -83,11 +92,21 @@
 
       @if (menuOpen()) {
         <div class="task-card__menu" role="menu">
-          <button type="button" role="menuitem" class="task-card__menu-item" (click)="runAction(() => edit.emit())">
+          <button
+            type="button"
+            role="menuitem"
+            class="task-card__menu-item"
+            (click)="runAction(() => edit.emit())"
+          >
             <app-icon name="pencil" [size]="16" />
             Editar
           </button>
-          <button type="button" role="menuitem" class="task-card__menu-item" (click)="runAction(() => duplicate.emit())">
+          <button
+            type="button"
+            role="menuitem"
+            class="task-card__menu-item"
+            (click)="runAction(() => duplicate.emit())"
+          >
             <app-icon name="copy" [size]="16" />
             Duplicar
           </button>

@@ -150,13 +150,17 @@ export class BoardPage {
     () => this.board.tasks().filter((task) => task.status !== 'done').length,
   );
 
-  protected readonly contextTitle = computed(() => this.view.activeList()?.name ?? 'Todas las tareas');
+  protected readonly contextTitle = computed(
+    () => this.view.activeList()?.name ?? 'Todas las tareas',
+  );
   protected readonly contextColorClass = computed(() => {
     const list = this.view.activeList();
     return list ? LIST_COLOR_BG_CLASS[list.color] : null;
   });
 
-  protected readonly themeIcon = computed<IconName>(() => (this.theme.resolved() === 'dark' ? 'moon' : 'sun'));
+  protected readonly themeIcon = computed<IconName>(() =>
+    this.theme.resolved() === 'dark' ? 'moon' : 'sun',
+  );
 
   /** The sample board is still untouched: no mutation has happened yet. */
   protected readonly showSeedNotice = computed(
@@ -204,7 +208,11 @@ export class BoardPage {
   });
 
   protected readonly anyDialogOpen = computed(
-    () => this.taskFormOpen() || this.listFormOpen() || this.shortcutsOpen() || this.confirmRequest() !== null,
+    () =>
+      this.taskFormOpen() ||
+      this.listFormOpen() ||
+      this.shortcutsOpen() ||
+      this.confirmRequest() !== null,
   );
 
   /** Always present so the dialog can stay mounted and close properly, returning focus. */
@@ -391,7 +399,9 @@ export class BoardPage {
     const visible = this.view.columns().find((column) => column.status === status)?.tasks ?? [];
     const siblings = this.board
       .tasks()
-      .filter((other) => other.id !== task.id && other.listId === task.listId && other.status === status)
+      .filter(
+        (other) => other.id !== task.id && other.listId === task.listId && other.status === status,
+      )
       .sort(byOrder);
 
     const targetIndex = resolveDropIndex(task, siblings, visible, event.targetIndex);
@@ -480,9 +490,16 @@ export class BoardPage {
     document.getElementById(`task-${id}`)?.focus();
   }
 
-  private focusAdjacentColumn(position: { columnIndex: number; taskIndex: number }, step: number): void {
+  private focusAdjacentColumn(
+    position: { columnIndex: number; taskIndex: number },
+    step: number,
+  ): void {
     const columns = this.view.columns();
-    for (let index = position.columnIndex + step; index >= 0 && index < columns.length; index += step) {
+    for (
+      let index = position.columnIndex + step;
+      index >= 0 && index < columns.length;
+      index += step
+    ) {
       if (columns[index].tasks.length > 0) {
         this.focusTaskAt(index, position.taskIndex);
         return;

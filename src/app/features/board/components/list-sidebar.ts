@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, HostListener, computed, ElementRef, inject, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostListener,
+  computed,
+  ElementRef,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import type { List, ListId } from '../../../core/models/list';
 import { Icon } from '../../../shared/ui/icon';
 import { LIST_COLOR_BG_CLASS } from '../../../shared/ui/list-color';

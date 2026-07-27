@@ -6,7 +6,11 @@
   <span class="task-column__count" [attr.aria-label]="countLabel()" data-numeric>
     {{ column().tasks.length }}
   </span>
-  <app-icon-button [label]="'Añadir tarea a ' + column().label" size="sm" (clicked)="addTask.emit()">
+  <app-icon-button
+    [label]="'Añadir tarea a ' + column().label"
+    size="sm"
+    (clicked)="addTask.emit()"
+  >
     <app-icon name="plus" [size]="20" />
   </app-icon-button>
 </header>

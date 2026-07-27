@@ -12,7 +12,11 @@
   </div>
 
   <div class="topbar__search">
-    <app-icon name="search" [size]="18" class="pointer-events-none absolute left-2.5 text-ink-subtle" />
+    <app-icon
+      name="search"
+      [size]="18"
+      class="pointer-events-none absolute left-2.5 text-ink-subtle"
+    />
     <input
       #searchInput
       type="search"
@@ -23,7 +27,12 @@
       (input)="onSearchInput($event)"
     />
     @if (view.query().length > 0) {
-      <button type="button" class="topbar__search-clear" aria-label="Vaciar la búsqueda" (click)="clearSearch()">
+      <button
+        type="button"
+        class="topbar__search-clear"
+        aria-label="Vaciar la búsqueda"
+        (click)="clearSearch()"
+      >
         <app-icon name="x" [size]="16" />
       </button>
     } @else {
@@ -76,24 +85,42 @@
     </div>
 
     <span class="hidden md:block">
-      <app-icon-button label="Atajos de teclado" hint="Atajos de teclado (?)" (clicked)="shortcutsOpen.set(true)">
+      <app-icon-button
+        label="Atajos de teclado"
+        hint="Atajos de teclado (?)"
+        (clicked)="shortcutsOpen.set(true)"
+      >
         <app-icon name="keyboard" [size]="20" />
       </app-icon-button>
     </span>
 
     <div class="relative" data-menu="overflow">
-      <app-icon-button label="Más acciones" [pressed]="overflowMenuOpen()" (clicked)="overflowMenuOpen.set(!overflowMenuOpen())">
+      <app-icon-button
+        label="Más acciones"
+        [pressed]="overflowMenuOpen()"
+        (clicked)="overflowMenuOpen.set(!overflowMenuOpen())"
+      >
         <app-icon name="more" [size]="20" />
       </app-icon-button>
 
       @if (overflowMenuOpen()) {
         <div class="menu" role="menu">
-          <button type="button" role="menuitem" class="menu__item md:hidden" (click)="overflowMenuOpen.set(false); shortcutsOpen.set(true)">
+          <button
+            type="button"
+            role="menuitem"
+            class="menu__item md:hidden"
+            (click)="overflowMenuOpen.set(false); shortcutsOpen.set(true)"
+          >
             <app-icon name="keyboard" [size]="16" />
             Atajos de teclado
           </button>
           <div class="menu__divider" role="separator"></div>
-          <button type="button" role="menuitem" class="menu__item menu__item--danger" (click)="requestClearBoard()">
+          <button
+            type="button"
+            role="menuitem"
+            class="menu__item menu__item--danger"
+            (click)="requestClearBoard()"
+          >
             <app-icon name="trash" [size]="16" />
             Vaciar el tablero
           </button>
@@ -189,7 +216,9 @@
           <p class="text-base font-semibold text-ink">Ninguna tarea coincide</p>
           <p class="mt-1 text-sm text-ink-muted">{{ filterSummary() }}</p>
           <div class="mt-3">
-            <app-button variant="secondary" size="sm" (clicked)="view.resetFilters()">Limpiar filtros</app-button>
+            <app-button variant="secondary" size="sm" (clicked)="view.resetFilters()"
+              >Limpiar filtros</app-button
+            >
           </div>
         </div>
       }

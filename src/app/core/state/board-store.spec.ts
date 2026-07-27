@@ -41,7 +41,10 @@ async function settle(): Promise<void> {
   await vi.advanceTimersByTimeAsync(0);
 }
 
-function setup(seedDocument?: { lists: List[]; tasks: Task[] }): { store: BoardStore; driver: MemoryStorageDriver } {
+function setup(seedDocument?: { lists: List[]; tasks: Task[] }): {
+  store: BoardStore;
+  driver: MemoryStorageDriver;
+} {
   const driver = new MemoryStorageDriver();
   if (seedDocument) {
     driver.write(
@@ -86,7 +89,9 @@ describe('BoardStore', () => {
     it('backs up and seeds on corrupt JSON, exposing loadIssue', () => {
       const driver = new MemoryStorageDriver();
       driver.write(BOARD_STORAGE_KEY, '{not json');
-      TestBed.configureTestingModule({ providers: [{ provide: STORAGE_DRIVER, useValue: driver }] });
+      TestBed.configureTestingModule({
+        providers: [{ provide: STORAGE_DRIVER, useValue: driver }],
+      });
       const store = TestBed.inject(BoardStore);
 
       expect(store.isSeeded()).toBe(true);
@@ -102,7 +107,9 @@ describe('BoardStore', () => {
         write: (key, value): SaveResult =>
           key === BOARD_BACKUP_KEY ? { kind: 'failed', reason: 'quota' } : driver.write(key, value),
       };
-      TestBed.configureTestingModule({ providers: [{ provide: STORAGE_DRIVER, useValue: failingBackup }] });
+      TestBed.configureTestingModule({
+        providers: [{ provide: STORAGE_DRIVER, useValue: failingBackup }],
+      });
       const store = TestBed.inject(BoardStore);
 
       expect(store.loadIssue()).toBe('corrupt-lost');
@@ -237,7 +244,9 @@ describe('BoardStore', () => {
 
       store.moveTask('c', { listId: 'l1', status: 'todo', targetIndex: 1 });
 
-      const tasks = [...store.tasks()].filter((t) => t.status === 'todo').sort((x, y) => x.order - y.order);
+      const tasks = [...store.tasks()]
+        .filter((t) => t.status === 'todo')
+        .sort((x, y) => x.order - y.order);
       const orders = tasks.map((t) => t.order);
       expect(new Set(orders).size).toBe(orders.length);
     });
@@ -347,7 +356,9 @@ describe('BoardStore', () => {
         write: (): SaveResult => ({ kind: 'failed', reason: 'quota' }),
         remove: () => {},
       };
-      TestBed.configureTestingModule({ providers: [{ provide: STORAGE_DRIVER, useValue: failingDriver }] });
+      TestBed.configureTestingModule({
+        providers: [{ provide: STORAGE_DRIVER, useValue: failingDriver }],
+      });
       const store = TestBed.inject(BoardStore);
 
       store.createTask({ listId: store.lists()[0].id, title: 'Still works' });
@@ -363,7 +374,9 @@ describe('BoardStore', () => {
       await settle();
 
       TestBed.resetTestingModule();
-      TestBed.configureTestingModule({ providers: [{ provide: STORAGE_DRIVER, useValue: driver }] });
+      TestBed.configureTestingModule({
+        providers: [{ provide: STORAGE_DRIVER, useValue: driver }],
+      });
       const reloaded = TestBed.inject(BoardStore);
 
       expect(reloaded.tasks().map((t) => t.title)).toEqual(['Round trip']);

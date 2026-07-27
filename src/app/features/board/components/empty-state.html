@@ -8,7 +8,9 @@
   </div>
   <div class="flex flex-col items-center gap-2">
     @if (primaryLabel(); as label) {
-      <app-button variant="primary" size="lg" (clicked)="primaryAction.emit()">{{ label }}</app-button>
+      <app-button variant="primary" size="lg" (clicked)="primaryAction.emit()">{{
+        label
+      }}</app-button>
     }
     @if (secondaryLabel(); as label) {
       <app-button variant="link" (clicked)="secondaryAction.emit()">{{ label }}</app-button>
