@@ -35,7 +35,7 @@ export function redoHistory<T>(history: History<T>): History<T> {
   if (history.future.length === 0) return history;
   const present = history.future[0];
   const future = history.future.slice(1);
-  const past = [...history.past, history.present];
+  const past = [...history.past, history.present].slice(-HISTORY_LIMIT);
   return { past, present, future };
 }
 

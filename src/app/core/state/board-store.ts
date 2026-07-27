@@ -26,11 +26,13 @@ import {
   undoHistory,
 } from './history';
 
+export type LoadIssue = 'corrupt-backed-up' | 'corrupt-lost' | null;
+
 interface InitialLoad {
   readonly state: BoardState;
   readonly seeded: boolean;
-  /** Set when the previously stored board could not be read. */
-  readonly loadIssue: 'corrupt' | null;
+  /** Set when the previously stored board could not be read, saying whether a copy survived. */
+  readonly loadIssue: LoadIssue;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,7 +44,7 @@ export class BoardStore {
   private readonly _history = signal(createHistory(this.initial.state));
   private readonly _seeded = signal(this.initial.seeded);
   private readonly _persistenceError = signal<PersistenceError | null>(null);
-  private readonly _loadIssue = signal<'corrupt' | null>(this.initial.loadIssue);
+  private readonly _loadIssue = signal<LoadIssue>(this.initial.loadIssue);
 
   // --- Reads ---
   readonly state = computed(() => this._history().present.value);
@@ -353,6 +355,7 @@ export class BoardStore {
     const timestamp = nowIso();
 
     this.commit('clear-board', (current) => {
+      if (current.tasks.length === 0 && current.lists.length === 1) return current;
       const [first] = [...current.lists].sort(byOrder);
       return { lists: [{ ...first, updatedAt: timestamp }], tasks: [] };
     });
@@ -374,7 +377,11 @@ export class BoardStore {
       return { state: result.state, seeded: result.seeded, loadIssue: null };
     }
     if (result.kind === 'corrupt') {
-      return { state: createSeedBoard(new Date()), seeded: true, loadIssue: 'corrupt' };
+      return {
+        state: createSeedBoard(new Date()),
+        seeded: true,
+        loadIssue: result.backedUp ? 'corrupt-backed-up' : 'corrupt-lost',
+      };
     }
     return { state: createSeedBoard(new Date()), seeded: true, loadIssue: null };
   }

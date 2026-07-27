@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { List } from '../models/list';
 import type { Task } from '../models/task';
 import { MemoryStorageDriver } from '../storage/memory-storage-driver';
-import { BOARD_STORAGE_KEY, CURRENT_SCHEMA_VERSION } from '../storage/schema';
+import { BOARD_BACKUP_KEY, BOARD_STORAGE_KEY, CURRENT_SCHEMA_VERSION } from '../storage/schema';
 import type { SaveResult, StorageDriver } from '../storage/storage-driver';
 import { STORAGE_DRIVER } from '../storage/storage-driver';
 import { BoardStore } from './board-store';
@@ -90,7 +90,22 @@ describe('BoardStore', () => {
       const store = TestBed.inject(BoardStore);
 
       expect(store.isSeeded()).toBe(true);
-      expect(store.loadIssue()).toBe('corrupt');
+      expect(store.loadIssue()).toBe('corrupt-backed-up');
+    });
+
+    it('reports the backup as lost when it could not be written', () => {
+      const driver = new MemoryStorageDriver();
+      driver.write(BOARD_STORAGE_KEY, '{not json');
+      const failingBackup: StorageDriver = {
+        read: (key) => driver.read(key),
+        remove: (key) => driver.remove(key),
+        write: (key, value): SaveResult =>
+          key === BOARD_BACKUP_KEY ? { kind: 'failed', reason: 'quota' } : driver.write(key, value),
+      };
+      TestBed.configureTestingModule({ providers: [{ provide: STORAGE_DRIVER, useValue: failingBackup }] });
+      const store = TestBed.inject(BoardStore);
+
+      expect(store.loadIssue()).toBe('corrupt-lost');
     });
   });
 
