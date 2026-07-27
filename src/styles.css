@@ -1,5 +1,7 @@
 /* Scan only application sources: the markdown docs at the repo root also mention class names. */
 @import 'tailwindcss' source('.');
+/* Positioning styles for CDK overlays: menus must escape any clipping ancestor. */
+@import '@angular/cdk/overlay-prebuilt.css';
 
 /* Theme is switched by a class on <html>, not by prefers-color-scheme. */
 @custom-variant dark (&:where(.dark, .dark *));

@@ -31,6 +31,8 @@
 
       <button
         type="button"
+        cdkOverlayOrigin
+        #listMenuTrigger="cdkOverlayOrigin"
         class="list-row__menu-trigger"
         [attr.aria-label]="'Abrir el menú de la lista ' + entry.list.name"
         aria-haspopup="menu"
@@ -40,7 +42,16 @@
         <app-icon name="more" [size]="18" />
       </button>
 
-      @if (openMenuFor() === entry.list.id) {
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="listMenuTrigger"
+        [cdkConnectedOverlayOpen]="openMenuFor() === entry.list.id"
+        [cdkConnectedOverlayPositions]="menuPositions"
+        [cdkConnectedOverlayPush]="true"
+        (overlayOutsideClick)="closeMenu()"
+        (overlayKeydown)="onMenuKeydown($event)"
+        (detach)="closeMenu()"
+      >
         <div class="list-row__menu" role="menu">
           <button
             type="button"
@@ -64,13 +75,12 @@
             Eliminar
           </button>
         </div>
-      }
+      </ng-template>
     </li>
   }
 </ul>
 
-<button type="button" class="list-sidebar__add" (click)="createList.emit()">
+<button type="button" class="list-sidebar__add" title="Nueva lista (L)" (click)="createList.emit()">
   <app-icon name="plus" [size]="16" />
   Nueva lista
-  <kbd class="kbd ml-auto" aria-hidden="true">L</kbd>
 </button>

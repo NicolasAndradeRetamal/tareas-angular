@@ -80,6 +80,8 @@
     <div class="relative ml-auto">
       <button
         type="button"
+        cdkOverlayOrigin
+        #menuTrigger="cdkOverlayOrigin"
         class="task-card__menu-trigger"
         [attr.aria-label]="'Abrir el menú de la tarea ' + task().title"
         aria-haspopup="menu"
@@ -90,7 +92,16 @@
         <app-icon name="more" [size]="20" />
       </button>
 
-      @if (menuOpen()) {
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="menuTrigger"
+        [cdkConnectedOverlayOpen]="menuOpen()"
+        [cdkConnectedOverlayPositions]="menuPositions"
+        [cdkConnectedOverlayPush]="true"
+        (overlayOutsideClick)="menuOpen.set(false)"
+        (overlayKeydown)="onMenuKeydown($event)"
+        (detach)="menuOpen.set(false)"
+      >
         <div class="task-card__menu" role="menu">
           <button
             type="button"
@@ -133,7 +144,7 @@
             Eliminar
           </button>
         </div>
-      }
+      </ng-template>
     </div>
   </div>
 </div>
