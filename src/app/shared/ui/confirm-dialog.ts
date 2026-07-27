@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Button } from './button';
 import { Dialog } from './dialog';
-
-let nextId = 0;
+import { nextDomId } from './dom-id';
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -18,6 +17,6 @@ export class ConfirmDialog {
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();
 
-  protected readonly titleId = `confirm-dialog-title-${nextId++}`;
-  protected readonly descriptionId = `confirm-dialog-desc-${nextId++}`;
+  protected readonly titleId = nextDomId('confirm-dialog-title');
+  protected readonly descriptionId = nextDomId('confirm-dialog-desc');
 }

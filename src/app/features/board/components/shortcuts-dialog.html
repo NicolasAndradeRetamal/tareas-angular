@@ -1,7 +1,7 @@
-<app-dialog [open]="open()" size="form" (closed)="closed.emit()">
-  <div role="document" aria-labelledby="shortcuts-title">
+<app-dialog [open]="open()" size="form" [labelledBy]="titleId" (closed)="closed.emit()">
+  <div>
     <header class="border-b border-line px-6 py-4">
-      <h2 id="shortcuts-title" class="text-lg font-semibold text-ink">Atajos de teclado</h2>
+      <h2 [id]="titleId" class="text-lg font-semibold text-ink">Atajos de teclado</h2>
     </header>
 
     <div class="flex flex-col gap-6 px-6 py-6">

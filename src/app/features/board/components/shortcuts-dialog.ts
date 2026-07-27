@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { Button } from '../../../shared/ui/button';
 import { Dialog } from '../../../shared/ui/dialog';
+import { nextDomId } from '../../../shared/ui/dom-id';
 
 interface ShortcutGroup {
   readonly scope: string;
@@ -48,4 +49,5 @@ export class ShortcutsDialog {
   readonly closed = output<void>();
 
   protected readonly groups = SHORTCUT_GROUPS;
+  protected readonly titleId = nextDomId('shortcuts-title');
 }
