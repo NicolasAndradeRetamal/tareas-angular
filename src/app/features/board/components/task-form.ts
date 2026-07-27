@@ -5,6 +5,7 @@ import {
   inject,
   input,
   output,
+  signal,
   untracked,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -72,6 +73,9 @@ export class TaskForm {
     dueDate: [''],
   });
 
+  /** Errors stay quiet until the first submit; after that they update on every keystroke. */
+  protected readonly submitAttempted = signal(false);
+
   private wasOpen = false;
 
   constructor() {
@@ -93,10 +97,8 @@ export class TaskForm {
   }
 
   protected submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    this.submitAttempted.set(true);
+    if (this.form.invalid) return;
 
     const value = this.form.getRawValue();
     const dueDate = value.dueDate === '' ? null : value.dueDate;
@@ -143,6 +145,7 @@ export class TaskForm {
   }
 
   private populateForm(): void {
+    this.submitAttempted.set(false);
     const task = this.task();
     if (task) {
       this.form.reset({

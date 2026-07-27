@@ -27,7 +27,7 @@ const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
       { keys: ['↑', '↓'], action: 'Tarjeta anterior o siguiente' },
       { keys: ['←', '→'], action: 'Columna anterior o siguiente' },
       { keys: ['Inicio', 'Fin'], action: 'Primera o última tarjeta de la columna' },
-      { keys: ['Enter'], action: 'Editar la tarea enfocada' },
+      { keys: ['Enter'], action: 'Abrir el detalle de la tarea enfocada' },
       { keys: ['Espacio'], action: 'Completar o reabrir la tarea enfocada' },
       { keys: ['Supr'], action: 'Eliminar la tarea enfocada' },
     ],
