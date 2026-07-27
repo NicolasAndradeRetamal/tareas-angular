@@ -3,32 +3,32 @@
 [![CI](https://github.com/NicolasAndradeRetamal/tareas-angular/actions/workflows/ci.yml/badge.svg)](https://github.com/NicolasAndradeRetamal/tareas-angular/actions/workflows/ci.yml)
 
 Gestor de tareas estilo kanban pensado para trabajar sin soltar el teclado:
-crear, buscar, filtrar, mover entre columnas y deshacer cualquier acción con
-atajos, todo con la fluidez y el pulido de una herramienta profesional
-(Linear, Trello) en lugar de un *to-do* de tutorial.
+crear, buscar, filtrar y recorrer el tablero con atajos, con la fluidez y el
+pulido de una herramienta profesional (Linear, Trello) en lugar de un *to-do*
+de tutorial.
 
 ## Qué lo hace distinto
 
-- **Experiencia de teclado de primera**: paleta de comandos (`Ctrl`+`K`),
-  atajos documentados en la propia interfaz y foco visible en todo momento.
-- **Deshacer/rehacer global**: cualquier mutación —crear, completar, borrar,
-  mover una tarjeta entre columnas— se puede deshacer, con historial en
-  memoria.
-- **Arrastrar y soltar real** entre las tres columnas del tablero (Angular
-  CDK), con reordenamiento por rangos fraccionales para que mover una tarjeta
-  no reescriba las demás.
+- **El teclado es un ciudadano de primera**, no un añadido: el tablero entero
+  es una sola parada de tabulación y se recorre con las flechas, con atajos
+  globales para buscar, crear y cambiar de tema, y una hoja de atajos dentro
+  de la propia aplicación.
+- **Foco y selección son lenguajes visuales distintos**: el foco es un anillo
+  efímero, la selección es persistente. Confundirlos es el error más común en
+  interfaces que se navegan con teclado.
+- **Orden por rangos fraccionales**: arrastrar una tarjeta modifica esa
+  tarjeta y ninguna más, en vez de reescribir el índice de toda la columna.
+- **Tema oscuro con jerarquía propia**, no una inversión del claro, y con los
+  contrastes calculados y verificados en ambos temas.
 - **Cero backend**: es una SPA 100 % cliente. No hay servidor, ni base de
   datos, ni llamadas de red en tiempo de ejecución.
 
 ## Demo
 
-**URL de la demo**: _pendiente de publicar en GitHub Pages_ (ver
-[Despliegue](#despliegue)). Una vez activada, quedará disponible en
-`https://nicolasandraderetamal.github.io/tareas-angular/`.
+`https://nicolasandraderetamal.github.io/tareas-angular/`
 
-**Capturas**: pendientes. Mientras tanto, la sección [§11 de
-DESIGN.md](DESIGN.md#11-vistas) describe en detalle la composición de cada
-pantalla (tablero, diálogos, estados vacíos).
+La sección [§11 de DESIGN.md](DESIGN.md#11-vistas) describe en detalle la
+composición de cada pantalla (tablero, diálogos, estados vacíos).
 
 ## Tus datos, solo en tu navegador
 
@@ -57,18 +57,31 @@ de la aplicación y empezar de cero.
 | Node.js | 24.18.0 |
 | pnpm | 11.1.2 |
 
-## Features
+## Qué hace
 
-- CRUD de tareas: título, descripción, prioridad y fecha límite.
-- Listas para agrupar tareas, con color e identidad propia.
-- Filtros por estado (pendientes, completadas, vencidas) y prioridad, más
-  búsqueda por texto.
-- Vista kanban con arrastre entre columnas y reordenamiento dentro de cada
-  una.
-- Paleta de comandos (`Ctrl`+`K`) y atajos de teclado globales.
-- Deshacer/rehacer de cualquier acción sobre el tablero.
-- Modo claro/oscuro con conmutador manual.
-- Datos de ejemplo en la primera visita, sustituibles desde la UI.
+- CRUD de tareas: título, descripción, cuatro niveles de prioridad y fecha
+  límite, con aviso de vencimiento.
+- Listas para agrupar tareas, con color propio y su propio CRUD.
+- Filtros por estado (pendientes, completadas, vencidas) y por prioridad, más
+  búsqueda por texto que ignora tildes y mayúsculas.
+- Tablero de tres columnas por estado, con reordenamiento por arrastre dentro
+  de cada columna y cambio de estado desde el menú de la tarjeta.
+- Navegación completa por teclado: flechas entre tarjetas y columnas, `Enter`
+  para editar, `Espacio` para completar, `Supr` para eliminar, y atajos
+  globales `/`, `N`, `L`, `T` y `?`.
+- Modo claro, oscuro o el del sistema, con conmutador manual.
+- Datos de ejemplo en la primera visita, vaciables desde la propia interfaz.
+
+## En camino
+
+La base ya está preparada para lo siguiente, que aún no está construido:
+
+- Arrastre **entre** columnas, además del reordenamiento dentro de cada una.
+- Paleta de comandos con `Ctrl`+`K`.
+- Deshacer y rehacer expuestos en la interfaz. El historial ya existe y está
+  cubierto por tests: todas las mutaciones pasan por un único punto de
+  escritura que lo alimenta, pero todavía no hay controles que lo usen.
+- Instalable y utilizable sin conexión.
 
 ## Cómo levantarlo en local
 
