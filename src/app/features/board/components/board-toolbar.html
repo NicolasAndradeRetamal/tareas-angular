@@ -5,7 +5,7 @@
   <h1 class="truncate text-base font-semibold text-ink sm:text-lg">{{ contextTitle() }}</h1>
 </div>
 
-<div class="flex items-center gap-2 overflow-x-auto">
+<div class="toolbar__filters">
   <div class="segmented" role="group" aria-label="Filtrar por estado">
     @for (option of statusOptions; track option.value) {
       <button

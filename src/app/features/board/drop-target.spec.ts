@@ -45,15 +45,15 @@ describe('resolveDropIndex', () => {
     expect(resolveDropIndex(dragged, siblings, visible, 2)).toBe(3);
   });
 
-  it('ignores neighbours from other lists when every list is on screen', () => {
-    const other = makeTask('other', 512, 'l2');
-    const dragged = b;
-    const siblings = [a];
-    const visible = [other, a, b];
+  it('honours neighbours from other lists, since the column ranks them together', () => {
+    const other = makeTask('other', 1536, 'l2');
+    const dragged = c;
+    const siblings = [a, b, other];
+    const visible = [a, b, other, c];
 
-    // Only `other` is above the drop point, and it belongs to another list.
-    expect(resolveDropIndex(dragged, siblings, visible, 1)).toBe(0);
-    expect(resolveDropIndex(dragged, siblings, visible, 2)).toBe(1);
+    expect(resolveDropIndex(dragged, siblings, visible, 1)).toBe(1);
+    // Dropped just below a card of another list: that card still holds a position.
+    expect(resolveDropIndex(dragged, siblings, visible, 3)).toBe(3);
   });
 
   it('appends when the visible neighbour is no longer in the column', () => {

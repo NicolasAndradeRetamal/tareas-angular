@@ -48,11 +48,14 @@ function formatAbsolute(due: IsoDate, includeYear: boolean): string {
 }
 
 /** Spanish label for a due date, relative to `today`. Empty string when there is no date. */
-export function formatDueLabel(due: IsoDate | null, today: IsoDate): string {
+export function formatDueLabel(due: IsoDate | null, today: IsoDate, done = false): string {
   if (due === null) return '';
 
   const diff = daysUntil(due, today);
   const withYear = formatAbsolute(due, true);
+
+  // A finished task is never late any more; announcing a delay would just be wrong.
+  if (done) return withYear;
 
   if (diff < 0) {
     const days = Math.abs(diff);

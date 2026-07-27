@@ -22,12 +22,12 @@
           class="list-field__control"
           formControlName="name"
           placeholder="Trabajo, Personal, Estudios…"
-          [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+          [attr.aria-invalid]="submitAttempted() && form.controls.name.invalid"
           [attr.aria-describedby]="
-            form.controls.name.touched && form.controls.name.invalid ? 'list-name-error' : null
+            submitAttempted() && form.controls.name.invalid ? 'list-name-error' : null
           "
         />
-        @if (form.controls.name.touched && form.controls.name.invalid) {
+        @if (submitAttempted() && form.controls.name.invalid) {
           <p id="list-name-error" class="text-xs text-danger">
             El nombre es obligatorio y debe tener como máximo {{ nameMax }} caracteres.
           </p>

@@ -36,6 +36,7 @@
         [roving]="task.id === focusedTaskId()"
         [highlighted]="task.id === highlightedTaskId()"
         [dragEnabled]="dragEnabled()"
+        (openDetail)="openTask.emit(task.id)"
         (toggleDone)="toggleDone.emit(task.id)"
         (edit)="editTask.emit(task.id)"
         (duplicate)="duplicateTask.emit(task.id)"

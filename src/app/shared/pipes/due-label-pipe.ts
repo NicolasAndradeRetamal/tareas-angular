@@ -6,7 +6,7 @@ import { formatDueLabel, todayIso } from '../../core/util/date';
 export class DueLabelPipe implements PipeTransform {
   private readonly today = todayIso();
 
-  transform(dueDate: IsoDate | null): string {
-    return formatDueLabel(dueDate, this.today);
+  transform(dueDate: IsoDate | null, done = false): string {
+    return formatDueLabel(dueDate, this.today, done);
   }
 }

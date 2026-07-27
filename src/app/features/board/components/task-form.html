@@ -22,13 +22,13 @@
           class="field__control"
           formControlName="title"
           placeholder="Título de la tarea"
-          [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid"
+          [attr.aria-invalid]="submitAttempted() && form.controls.title.invalid"
           [attr.aria-describedby]="
-            form.controls.title.touched && form.controls.title.invalid ? 'task-title-error' : null
+            submitAttempted() && form.controls.title.invalid ? 'task-title-error' : null
           "
         />
         <div class="field__meta">
-          @if (form.controls.title.touched && form.controls.title.invalid) {
+          @if (submitAttempted() && form.controls.title.invalid) {
             <p id="task-title-error" class="field__error">
               <app-icon name="warning" [size]="14" />
               El título es obligatorio y debe tener como máximo {{ titleMax }} caracteres.
@@ -153,10 +153,8 @@
         <app-button variant="secondary" type="button" (clicked)="closed.emit()"
           >Cancelar</app-button
         >
-        <app-button variant="primary" type="submit">
+        <app-button variant="primary" type="submit" title="Guardar (Ctrl + Enter)">
           {{ isEdit ? 'Guardar cambios' : 'Crear tarea' }}
-          <kbd class="kbd" aria-hidden="true">Ctrl</kbd>
-          <kbd class="kbd" aria-hidden="true">Enter</kbd>
         </app-button>
       </div>
     </footer>

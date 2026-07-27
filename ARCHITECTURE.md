@@ -417,7 +417,7 @@ export interface Task {
   readonly priority: TaskPriority;
   readonly status: TaskStatus;
   readonly dueDate: IsoDate | null;
-  /** Rango fraccional dentro de (listId, status). Ver §6.5. */
+  /** Rango fraccional dentro de su columna de estado. Ver §6.5. */
   readonly order: number;
   readonly createdAt: IsoDateTime;
   readonly updatedAt: IsoDateTime;
@@ -477,7 +477,7 @@ erDiagram
         string priority "low, medium, high o urgent"
         string status "todo, in-progress o done"
         string dueDate "nullable, YYYY-MM-DD"
-        number order "rango fraccional dentro de (listId, status)"
+        number order "rango fraccional dentro de la columna de estado"
         string createdAt "ISO 8601 UTC"
         string updatedAt "ISO 8601 UTC"
         string completedAt "nullable, ISO 8601 UTC"
@@ -489,10 +489,20 @@ erDiagram
 Es la decisión que sostiene el arrastre. El requisito es reordenar dentro de una
 columna **y** mover entre columnas sin reindexar el resto de tarjetas.
 
-**Regla: `order` es un número de coma flotante y su ámbito de unicidad es la
-tupla `(listId, status)`.** No es un índice de posición: es un rango relativo.
-Dos tareas en columnas distintas pueden compartir `order` sin conflicto, porque
-nunca se comparan entre sí.
+**Regla: `order` es un número de coma flotante y su ámbito de unicidad es el
+`status`, es decir, la columna completa del tablero, con independencia de la
+lista a la que pertenezca cada tarea.** No es un índice de posición: es un rango
+relativo. Dos tareas en columnas distintas pueden compartir `order` sin
+conflicto, porque nunca se comparan entre sí.
+
+El ámbito es la columna y no la tupla `(listId, status)` por una razón de
+producto: la aplicación abre en «Todas las tareas», donde una columna reúne
+tareas de varias listas. Con un rango por lista esa vista no tendría ningún
+orden que un arrastre pudiera modificar —las posiciones de listas distintas no
+son comparables—, así que la funcionalidad principal quedaría inutilizable justo
+en la primera pantalla. Con el rango por columna, la vista de una lista concreta
+es un subconjunto filtrado de la columna y el arrastre sigue funcionando: basta
+traducir el índice visible a la posición real antes de tocar el estado.
 
 ```ts
 /** Separación por defecto entre elementos consecutivos. */
@@ -560,7 +570,7 @@ Las obligaciones que la tienda garantiza y que los tests verifican:
 2. Borrar una lista borra en cascada sus tareas, **en una sola entrada del
    historial**: deshacer restituye lista y tareas juntas.
 3. Siempre existe al menos una lista. Se impide borrar la última.
-4. `order` es único dentro de `(listId, status)`; entre columnas distintas no
+4. `order` es único dentro de un mismo `status`; entre columnas distintas no
    tiene ningún significado comparativo.
 5. `title` no está vacío tras `trim()` y no supera 120 caracteres.
    `description` no supera 2000. `name` de lista: 1..60.
@@ -1266,7 +1276,7 @@ faltará añadir.
 **Listo hoy**
 
 - `TaskStatus` **es** la columna: no hace falta ninguna entidad nueva.
-- `order` con ámbito `(listId, status)` y rangos fraccionales: mover entre
+- `order` con ámbito de columna de estado y rangos fraccionales: mover entre
   columnas modifica **una sola tarea**, igual que reordenar dentro de una
   (§6.5).
 - `moveTask(id, { listId, status, targetIndex })` ya cubre ambos casos con la
@@ -1453,7 +1463,7 @@ Resumen de lo decidido, con lo descartado y el porqué.
 | 2 | Signals para todo el estado | RxJS y `BehaviorSubject`; NgRx u otra librería | Estado local y síncrono, sin flujos asíncronos. Los derivados con `computed` eliminan el estado duplicado. Una librería externa añadiría ceremonia sin resolver ningún problema real |
 | 3 | Zoneless | `zone.js` | Menos JavaScript, detección de cambios dirigida por el grafo de signals y mejor comportamiento durante el arrastre |
 | 4 | SPA con renderizado en cliente | SSR; SSG | Los datos solo existen en el cliente; renderizar en servidor produciría HTML vacío |
-| 5 | `order` fraccional con ámbito `(listId, status)` | Índice entero contiguo; rangos lexicográficos tipo LexoRank | Reordenar y mover entre columnas modifican una sola tarea. Los enteros obligan a reindexar; las cadenas resuelven una concurrencia que aquí no existe |
+| 5 | `order` fraccional con ámbito de columna de estado | Índice entero contiguo; rangos lexicográficos tipo LexoRank | Reordenar y mover entre columnas modifican una sola tarea. Los enteros obligan a reindexar; las cadenas resuelven una concurrencia que aquí no existe |
 | 6 | Deshacer con snapshots inmutables | Comandos invertibles | La reutilización estructural abarata los snapshots, y desaparece toda una clase de errores por inversas mal escritas. Cualquier acción futura es deshacible sin código extra |
 | 7 | `commit()` como único punto de escritura desde el MVP | Añadir el historial en la fase 2 | Retrofit del historial obligaría a revisar todas las mutaciones. Hacerlo ahora cuesta casi nada |
 | 8 | Historial solo en memoria, 50 entradas | Persistir el historial | Nadie espera deshacer tras recargar; persistirlo multiplicaría el tamaño guardado |

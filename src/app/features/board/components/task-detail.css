@@ -1,0 +1,20 @@
+:host {
+  display: contents;
+}
+
+.detail-label {
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--ink-subtle);
+}
+
+.detail-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--sunken);
+  color: var(--ink-muted);
+}

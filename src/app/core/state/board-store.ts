@@ -103,9 +103,7 @@ export class BoardStore {
     const clampedTitle = title.slice(0, TASK_TITLE_MAX_LENGTH);
 
     this.commit('create-task', (current) => {
-      const column = current.tasks
-        .filter((task) => task.listId === input.listId && task.status === status)
-        .sort(byOrder);
+      const column = current.tasks.filter((task) => task.status === status).sort(byOrder);
       const order =
         position === 'start'
           ? rankBetween(null, column[0]?.order ?? null)
@@ -163,13 +161,10 @@ export class BoardStore {
         nextDueDate === existing.dueDate;
       if (unchanged) return current;
 
-      const columnChanged = nextStatus !== existing.status || nextListId !== existing.listId;
       let order = existing.order;
-      if (columnChanged) {
+      if (nextStatus !== existing.status) {
         const destination = current.tasks
-          .filter(
-            (task) => task.id !== id && task.listId === nextListId && task.status === nextStatus,
-          )
+          .filter((task) => task.id !== id && task.status === nextStatus)
           .sort(byOrder);
         order = rankBetween(destination.at(-1)?.order ?? null, null);
       }
@@ -206,9 +201,7 @@ export class BoardStore {
       if (!existing || existing.status === status) return current;
 
       const destination = current.tasks
-        .filter(
-          (task) => task.id !== id && task.listId === existing.listId && task.status === status,
-        )
+        .filter((task) => task.id !== id && task.status === status)
         .sort(byOrder);
       const order = rankBetween(null, destination[0]?.order ?? null);
 
@@ -238,10 +231,7 @@ export class BoardStore {
       if (!existing) return current;
 
       const destinationColumn = current.tasks
-        .filter(
-          (task) =>
-            task.id !== id && task.listId === target.listId && task.status === target.status,
-        )
+        .filter((task) => task.id !== id && task.status === target.status)
         .sort(byOrder);
       const clampedIndex = Math.max(0, Math.min(target.targetIndex, destinationColumn.length));
       const before = clampedIndex > 0 ? destinationColumn[clampedIndex - 1].order : null;

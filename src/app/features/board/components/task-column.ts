@@ -39,6 +39,7 @@ export class TaskColumn {
   readonly highlightedTaskId = input<TaskId | null>(null);
 
   readonly addTask = output<void>();
+  readonly openTask = output<TaskId>();
   readonly editTask = output<TaskId>();
   readonly toggleDone = output<TaskId>();
   readonly duplicateTask = output<TaskId>();

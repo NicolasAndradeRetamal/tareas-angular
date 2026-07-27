@@ -1,17 +1,12 @@
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  HostListener,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+  CdkConnectedOverlay,
+  CdkOverlayOrigin,
+  type ConnectedPosition,
+} from '@angular/cdk/overlay';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import type { List } from '../../../core/models/list';
-import { PRIORITY_WEIGHT, TASK_STATUSES, STATUS_LABELS } from '../../../core/models/task';
+import { PRIORITY_WEIGHT, STATUS_LABELS, TASK_STATUSES } from '../../../core/models/task';
 import type { Task, TaskStatus } from '../../../core/models/task';
 import { daysUntil, isOverdue, todayIso } from '../../../core/util/date';
 import { Badge } from '../../../shared/ui/badge';
@@ -36,9 +31,23 @@ const PRIORITY_STRIPE_CLASS: Record<Task['priority'], string> = {
   urgent: 'bg-priority-urgent',
 };
 
+const MENU_POSITIONS: ConnectedPosition[] = [
+  { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
+  { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 },
+  { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 4 },
+];
+
 @Component({
   selector: 'app-task-card',
-  imports: [CdkDragHandle, Icon, Badge, DueLabelPipe, PriorityLabelPipe],
+  imports: [
+    CdkDragHandle,
+    CdkOverlayOrigin,
+    CdkConnectedOverlay,
+    Icon,
+    Badge,
+    DueLabelPipe,
+    PriorityLabelPipe,
+  ],
   templateUrl: './task-card.html',
   styleUrl: './task-card.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,11 +60,10 @@ const PRIORITY_STRIPE_CLASS: Record<Task['priority'], string> = {
     '[class.task-card--highlighted]': 'highlighted()',
     class: 'task-card group',
     '(focus)': 'focused.emit()',
+    '(click)': 'onCardClick($event)',
   },
 })
 export class TaskCard {
-  private readonly host = inject(ElementRef<HTMLElement>);
-
   readonly task = input.required<Task>();
   readonly list = input<List | null>(null);
   readonly showListMeta = input(false);
@@ -63,6 +71,7 @@ export class TaskCard {
   readonly roving = input(false);
   readonly dragEnabled = input(true);
 
+  readonly openDetail = output<void>();
   readonly toggleDone = output<void>();
   readonly edit = output<void>();
   readonly duplicate = output<void>();
@@ -71,6 +80,7 @@ export class TaskCard {
   readonly focused = output<void>();
 
   protected readonly menuOpen = signal(false);
+  protected readonly menuPositions = MENU_POSITIONS;
   protected readonly titleId = nextDomId('task-title');
   protected readonly hintId = nextDomId('task-drag-hint');
   private readonly today = todayIso();
@@ -106,17 +116,15 @@ export class TaskCard {
     })),
   );
 
-  @HostListener('document:keydown.escape')
-  protected closeMenu(): void {
-    this.menuOpen.set(false);
+  /** Anywhere on the card opens the detail, except the controls that do their own thing. */
+  protected onCardClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('button, a, input, select, [role="checkbox"]')) return;
+    this.openDetail.emit();
   }
 
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    if (!this.menuOpen()) return;
-    if (!this.host.nativeElement.contains(event.target as Node)) {
-      this.menuOpen.set(false);
-    }
+  protected onMenuKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') this.menuOpen.set(false);
   }
 
   protected toggleMenu(): void {

@@ -5,6 +5,7 @@ import {
   inject,
   input,
   output,
+  signal,
   untracked,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -51,6 +52,9 @@ export class ListForm {
     color: ['slate' as ListColor],
   });
 
+  /** Errors stay quiet until the first submit; after that they update on every keystroke. */
+  protected readonly submitAttempted = signal(false);
+
   private wasOpen = false;
 
   constructor() {
@@ -68,16 +72,15 @@ export class ListForm {
   }
 
   protected submit(): void {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
+    this.submitAttempted.set(true);
+    if (this.form.invalid) return;
     const value = this.form.getRawValue();
     this.submitted.emit({ name: value.name, color: value.color });
     this.closed.emit();
   }
 
   private populateForm(): void {
+    this.submitAttempted.set(false);
     const list = this.list();
     this.form.reset({
       name: list?.name ?? '',

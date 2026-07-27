@@ -1,14 +1,9 @@
 import {
-  ChangeDetectionStrategy,
-  Component,
-  HostListener,
-  computed,
-  ElementRef,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+  CdkConnectedOverlay,
+  CdkOverlayOrigin,
+  type ConnectedPosition,
+} from '@angular/cdk/overlay';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import type { List, ListId } from '../../../core/models/list';
 import { Icon } from '../../../shared/ui/icon';
 import { LIST_COLOR_BG_CLASS } from '../../../shared/ui/list-color';
@@ -18,17 +13,20 @@ export interface ListSummary {
   readonly count: number;
 }
 
+const MENU_POSITIONS: ConnectedPosition[] = [
+  { originX: 'end', originY: 'bottom', overlayX: 'end', overlayY: 'top', offsetY: 4 },
+  { originX: 'end', originY: 'top', overlayX: 'end', overlayY: 'bottom', offsetY: -4 },
+];
+
 @Component({
   selector: 'app-list-sidebar',
-  imports: [Icon],
+  imports: [Icon, CdkOverlayOrigin, CdkConnectedOverlay],
   templateUrl: './list-sidebar.html',
   styleUrl: './list-sidebar.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'list-sidebar', role: 'nav', 'aria-label': 'Listas' },
 })
 export class ListSidebar {
-  private readonly host = inject(ElementRef<HTMLElement>);
-
   readonly lists = input.required<readonly ListSummary[]>();
   readonly activeListId = input<ListId | null>(null);
   readonly totalCount = input.required<number>();
@@ -41,17 +39,14 @@ export class ListSidebar {
   protected readonly openMenuFor = signal<ListId | null>(null);
   protected readonly canDelete = computed(() => this.lists().length > 1);
   protected readonly dotClass = LIST_COLOR_BG_CLASS;
+  protected readonly menuPositions = MENU_POSITIONS;
 
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    if (this.openMenuFor() !== null && !this.host.nativeElement.contains(event.target as Node)) {
-      this.openMenuFor.set(null);
-    }
-  }
-
-  @HostListener('document:keydown.escape')
   protected closeMenu(): void {
     this.openMenuFor.set(null);
+  }
+
+  protected onMenuKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') this.closeMenu();
   }
 
   protected toggleMenu(id: ListId): void {
@@ -59,7 +54,7 @@ export class ListSidebar {
   }
 
   protected runAction(action: () => void): void {
-    this.openMenuFor.set(null);
+    this.closeMenu();
     action();
   }
 }

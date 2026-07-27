@@ -156,11 +156,8 @@
   color: var(--ink);
 }
 
+/* Rendered in the CDK overlay container, outside the card's overflow clipping. */
 .task-card__menu {
-  position: absolute;
-  right: 0;
-  bottom: 100%;
-  margin-bottom: 4px;
   min-width: 200px;
   max-width: 280px;
   background: var(--overlay);
@@ -168,7 +165,6 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
   padding-block: 4px;
-  z-index: 20;
 }
 
 .task-card__menu-item {

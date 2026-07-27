@@ -66,11 +66,8 @@ li:focus-within > .list-row__menu-trigger {
   color: var(--ink);
 }
 
+/* Rendered in the CDK overlay container, outside the sidebar's scroll clipping. */
 .list-row__menu {
-  position: absolute;
-  right: 8px;
-  top: 100%;
-  z-index: 20;
   min-width: 180px;
   background: var(--overlay);
   border: 1px solid var(--line);

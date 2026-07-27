@@ -1,0 +1,63 @@
+<app-dialog [open]="open()" size="form" [labelledBy]="titleId" (closed)="closed.emit()">
+  @if (task(); as current) {
+    <article class="flex flex-col">
+      <header class="flex flex-col gap-2 border-b border-line px-6 py-4">
+        <h2 [id]="titleId" class="text-lg font-semibold text-ink">{{ current.title }}</h2>
+        <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
+          <span class="detail-chip">{{ statusLabel() }}</span>
+          <span class="detail-chip">Prioridad {{ priorityLabel().toLowerCase() }}</span>
+          @if (list(); as owner) {
+            <span class="flex items-center gap-1.5">
+              <span class="h-2 w-2 rounded-full" [class]="listDotClass()" aria-hidden="true"></span>
+              {{ owner.name }}
+            </span>
+          }
+        </p>
+      </header>
+
+      <div class="flex flex-col gap-5 px-6 py-6">
+        <section>
+          <h3 class="detail-label">Descripción</h3>
+          @if (current.description) {
+            <p class="mt-1 whitespace-pre-line text-base text-ink">{{ current.description }}</p>
+          } @else {
+            <p class="mt-1 text-base text-ink-subtle">Esta tarea no tiene descripción.</p>
+          }
+        </section>
+
+        <section>
+          <h3 class="detail-label">Fecha límite</h3>
+          <p class="mt-1 flex items-center gap-1.5 text-base" [class.text-danger]="overdue()">
+            @if (current.dueDate) {
+              <app-icon [name]="overdue() ? 'warning' : 'calendar'" [size]="16" />
+              <time [attr.datetime]="current.dueDate">{{ dueLabel() }}</time>
+            } @else {
+              <span class="text-ink-subtle">Sin fecha límite</span>
+            }
+          </p>
+        </section>
+
+        <section class="grid gap-1 text-xs text-ink-subtle">
+          <span>Creada el {{ formatStamp(current.createdAt) }}</span>
+          <span>Editada el {{ formatStamp(current.updatedAt) }}</span>
+          @if (current.completedAt) {
+            <span>Completada el {{ formatStamp(current.completedAt) }}</span>
+          }
+        </section>
+      </div>
+
+      <footer
+        class="flex flex-wrap items-center justify-between gap-2 border-t border-line px-6 py-4"
+      >
+        <app-button variant="danger-subtle" (clicked)="remove.emit()">Eliminar</app-button>
+        <div class="flex flex-wrap items-center gap-2">
+          <app-button variant="subtle" (clicked)="duplicate.emit()">Duplicar</app-button>
+          <app-button variant="secondary" (clicked)="toggleDone.emit()">
+            {{ isDone() ? 'Reabrir' : 'Completar' }}
+          </app-button>
+          <app-button variant="primary" (clicked)="edit.emit()">Editar</app-button>
+        </div>
+      </footer>
+    </article>
+  }
+</app-dialog>
