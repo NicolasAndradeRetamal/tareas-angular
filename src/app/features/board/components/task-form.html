@@ -1,0 +1,142 @@
+<app-dialog [open]="open()" size="form" (closed)="closed.emit()" (keydown.control.enter)="submit()">
+  <form class="flex flex-col" [formGroup]="form" (ngSubmit)="submit()">
+    <header class="flex items-center justify-between border-b border-line px-6 py-4">
+      <h2 class="text-lg font-semibold text-ink">{{ isEdit ? 'Editar tarea' : 'Nueva tarea' }}</h2>
+    </header>
+
+    <div class="flex flex-col gap-4 px-6 py-6">
+      <div class="field">
+        <label for="task-title" class="field__label">Título</label>
+        <input
+          id="task-title"
+          type="text"
+          class="field__control"
+          formControlName="title"
+          placeholder="Título de la tarea"
+          [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid"
+          [attr.aria-describedby]="form.controls.title.touched && form.controls.title.invalid ? 'task-title-error' : null"
+        />
+        <div class="field__meta">
+          @if (form.controls.title.touched && form.controls.title.invalid) {
+            <p id="task-title-error" class="field__error">
+              <app-icon name="warning" [size]="14" />
+              El título es obligatorio y debe tener como máximo {{ titleMax }} caracteres.
+            </p>
+          } @else {
+            <span></span>
+          }
+          @if (form.controls.title.value.length >= titleCounterThreshold) {
+            <span
+              class="field__counter"
+              [class.field__counter--danger]="form.controls.title.value.length >= titleMax"
+              data-numeric
+            >
+              {{ form.controls.title.value.length }}/{{ titleMax }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="task-description" class="field__label">Descripción</label>
+        <textarea
+          id="task-description"
+          class="field__control field__control--textarea"
+          formControlName="description"
+          placeholder="Añade más detalle (opcional)"
+          rows="3"
+        ></textarea>
+        <div class="field__meta">
+          <span></span>
+          @if (form.controls.description.value.length >= descriptionCounterThreshold) {
+            <span
+              class="field__counter"
+              [class.field__counter--danger]="form.controls.description.value.length >= descriptionMax"
+              data-numeric
+            >
+              {{ form.controls.description.value.length }}/{{ descriptionMax }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="field__label" id="priority-label">Prioridad</span>
+        <div class="priority-picker" role="radiogroup" aria-labelledby="priority-label">
+          @for (priority of priorities; track priority) {
+            <button
+              type="button"
+              class="priority-picker__option"
+              [class.priority-picker__option--active]="form.controls.priority.value === priority"
+              role="radio"
+              [attr.aria-checked]="form.controls.priority.value === priority"
+              (click)="form.controls.priority.setValue(priority)"
+            >
+              <span class="flex items-end gap-0.5" aria-hidden="true">
+                @for (bar of [0, 1, 2, 3]; track bar) {
+                  <span
+                    class="h-2.5 w-0.5 rounded-[2px]"
+                    [class]="bar <= priorityWeight[priority] ? 'bg-priority-' + priority : 'bg-line-strong/40'"
+                  ></span>
+                }
+              </span>
+              {{ priority | priorityLabel }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div class="field">
+          <label for="task-status" class="field__label">Estado</label>
+          <select id="task-status" class="field__control" formControlName="status">
+            @for (status of statuses; track status) {
+              <option [value]="status">{{ statusLabels[status] }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="task-list" class="field__label">Lista</label>
+          <select id="task-list" class="field__control" formControlName="listId">
+            @for (list of lists(); track list.id) {
+              <option [value]="list.id">{{ list.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="task-due-date" class="field__label">Fecha límite</label>
+        <div class="flex items-center gap-2">
+          <input id="task-due-date" type="date" class="field__control" formControlName="dueDate" />
+          @if (form.controls.dueDate.value) {
+            <app-button variant="subtle" size="sm" type="button" (clicked)="clearDueDate()">Quitar fecha</app-button>
+          }
+        </div>
+      </div>
+
+      @if (isEdit && task(); as current) {
+        <p class="text-2xs text-ink-subtle">
+          Creada el {{ formatMeta(current.createdAt) }} · Editada el {{ formatMeta(current.updatedAt) }}
+        </p>
+      }
+    </div>
+
+    <footer class="flex items-center justify-between gap-2 border-t border-line px-6 py-4">
+      @if (isEdit) {
+        <app-button variant="danger-subtle" (clicked)="requestDelete()">Eliminar</app-button>
+      } @else {
+        <span></span>
+      }
+      <div class="flex items-center gap-2">
+        <app-button variant="secondary" type="button" (clicked)="closed.emit()">Cancelar</app-button>
+        <app-button variant="primary" type="submit">
+          {{ isEdit ? 'Guardar cambios' : 'Crear tarea' }}
+          <kbd class="kbd" aria-hidden="true">Ctrl</kbd>
+          <kbd class="kbd" aria-hidden="true">Enter</kbd>
+        </app-button>
+      </div>
+    </footer>
+  </form>
+</app-dialog>

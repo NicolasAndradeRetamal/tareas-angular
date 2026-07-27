@@ -1,0 +1,17 @@
+<div class="mx-auto flex max-w-[360px] flex-col items-center gap-4 py-8 text-center sm:py-12">
+  <span class="grid h-[72px] w-[72px] place-items-center rounded-full bg-sunken text-ink-subtle">
+    <app-icon [name]="icon()" [size]="40" />
+  </span>
+  <div class="space-y-1.5">
+    <h2 class="text-lg font-semibold text-ink">{{ title() }}</h2>
+    <p class="text-base text-ink-muted">{{ message() }}</p>
+  </div>
+  <div class="flex flex-col items-center gap-2">
+    @if (primaryLabel(); as label) {
+      <app-button variant="primary" size="lg" (clicked)="primaryAction.emit()">{{ label }}</app-button>
+    }
+    @if (secondaryLabel(); as label) {
+      <app-button variant="link" (clicked)="secondaryAction.emit()">{{ label }}</app-button>
+    }
+  </div>
+</div>

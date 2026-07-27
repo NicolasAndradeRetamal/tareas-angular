@@ -1,0 +1,52 @@
+<app-dialog [open]="open()" size="confirm" (closed)="closed.emit()" (keydown.control.enter)="submit()">
+  <form class="flex flex-col" [formGroup]="form" (ngSubmit)="submit()">
+    <header class="border-b border-line px-6 py-4">
+      <h2 class="text-lg font-semibold text-ink">{{ isEdit ? 'Renombrar lista' : 'Nueva lista' }}</h2>
+    </header>
+
+    <div class="flex flex-col gap-4 px-6 py-6">
+      <div class="list-field">
+        <label for="list-name" class="list-field__label">Nombre</label>
+        <input
+          id="list-name"
+          type="text"
+          class="list-field__control"
+          formControlName="name"
+          placeholder="Trabajo, Personal, Estudios…"
+          [attr.aria-invalid]="form.controls.name.touched && form.controls.name.invalid"
+          [attr.aria-describedby]="form.controls.name.touched && form.controls.name.invalid ? 'list-name-error' : null"
+        />
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          <p id="list-name-error" class="text-xs text-danger">
+            El nombre es obligatorio y debe tener como máximo {{ nameMax }} caracteres.
+          </p>
+        }
+      </div>
+
+      <div class="list-field">
+        <span class="list-field__label" id="list-color-label">Color</span>
+        <div class="color-picker" role="radiogroup" aria-labelledby="list-color-label">
+          @for (color of colors; track color) {
+            <button
+              type="button"
+              class="color-picker__option"
+              [class.color-picker__option--active]="form.controls.color.value === color"
+              role="radio"
+              [attr.aria-checked]="form.controls.color.value === color"
+              [attr.aria-label]="colorLabel[color]"
+              [title]="colorLabel[color]"
+              (click)="form.controls.color.setValue(color)"
+            >
+              <span class="h-4 w-4 rounded-full" [class]="colorClass[color]"></span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <footer class="flex items-center justify-end gap-2 border-t border-line px-6 py-4">
+      <app-button variant="secondary" type="button" (clicked)="closed.emit()">Cancelar</app-button>
+      <app-button variant="primary" type="submit">{{ isEdit ? 'Guardar' : 'Crear lista' }}</app-button>
+    </footer>
+  </form>
+</app-dialog>

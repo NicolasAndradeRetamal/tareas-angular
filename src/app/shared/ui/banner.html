@@ -1,0 +1,20 @@
+<div class="banner" [class]="'banner--' + variant()" [attr.role]="role()">
+  <app-icon [name]="icon()" [size]="18" class="banner__icon" />
+
+  <p class="banner__text">
+    @if (lead(); as text) {
+      <strong class="font-semibold">{{ text }}</strong>
+    }
+    {{ message() }}
+  </p>
+
+  @if (actionLabel(); as label) {
+    <app-button variant="subtle" size="sm" (clicked)="action.emit()">{{ label }}</app-button>
+  }
+
+  @if (dismissible()) {
+    <app-icon-button label="Descartar el aviso" size="sm" (clicked)="dismissed.emit()">
+      <app-icon name="x" [size]="18" />
+    </app-icon-button>
+  }
+</div>

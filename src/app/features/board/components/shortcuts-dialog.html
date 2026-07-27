@@ -1,0 +1,31 @@
+<app-dialog [open]="open()" size="form" (closed)="closed.emit()">
+  <div role="document" aria-labelledby="shortcuts-title">
+    <header class="border-b border-line px-6 py-4">
+      <h2 id="shortcuts-title" class="text-lg font-semibold text-ink">Atajos de teclado</h2>
+    </header>
+
+    <div class="flex flex-col gap-6 px-6 py-6">
+      @for (group of groups; track group.scope) {
+        <section>
+          <h3 class="mb-2 text-2xs font-semibold text-ink-subtle uppercase tracking-caps">{{ group.scope }}</h3>
+          <ul class="flex flex-col">
+            @for (entry of group.entries; track entry.action) {
+              <li class="flex items-center justify-between gap-4 border-b border-line/60 py-2 last:border-0">
+                <span class="text-sm text-ink">{{ entry.action }}</span>
+                <span class="flex shrink-0 items-center gap-0.5">
+                  @for (key of entry.keys; track key) {
+                    <kbd class="kbd">{{ key }}</kbd>
+                  }
+                </span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    </div>
+
+    <footer class="flex justify-end border-t border-line px-6 py-4">
+      <app-button variant="secondary" (clicked)="closed.emit()">Cerrar</app-button>
+    </footer>
+  </div>
+</app-dialog>

@@ -272,6 +272,24 @@
   }
 }
 
+/* The only cross-cutting visual atom reused by several unrelated components. */
+@layer components {
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.25rem;
+    padding-inline: 0.375rem;
+    border-radius: var(--radius-xs);
+    background: var(--sunken);
+    border: 1px solid var(--line-strong);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+    font-size: var(--text-2xs);
+    letter-spacing: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

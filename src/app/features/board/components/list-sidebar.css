@@ -1,0 +1,142 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.list-sidebar__label {
+  padding-inline: 8px;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--ink-subtle);
+  text-transform: uppercase;
+}
+
+.list-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding-inline: 8px;
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: var(--text-sm);
+}
+
+.list-row:hover {
+  background: var(--hover);
+}
+
+.list-row--active {
+  background: var(--primary-soft);
+  font-weight: 500;
+  box-shadow: inset 3px 0 0 0 var(--primary);
+}
+
+.list-row__count {
+  flex-shrink: 0;
+  color: var(--ink-subtle);
+  font-size: var(--text-xs);
+}
+
+.list-row__menu-trigger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  border-radius: var(--radius-xs);
+  color: var(--ink-subtle);
+}
+
+.list-row:hover .list-row__menu-trigger,
+.list-row:focus-within .list-row__menu-trigger {
+  display: inline-flex;
+}
+
+.list-row__menu-trigger:hover {
+  background: var(--press);
+  color: var(--ink);
+}
+
+.list-row__menu {
+  position: absolute;
+  right: 8px;
+  top: 100%;
+  z-index: 20;
+  min-width: 180px;
+  background: var(--overlay);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding-block: 4px;
+}
+
+.list-row__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding-inline: 12px;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  text-align: left;
+}
+
+.list-row__menu-item:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.list-row__menu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.list-row__menu-item--danger:not(:disabled) {
+  color: var(--danger);
+}
+
+.list-row__menu-item--danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
+.list-row__menu-divider {
+  height: 1px;
+  margin-block: 4px;
+  background: var(--line);
+}
+
+.list-sidebar__add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding-inline: 8px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.list-sidebar__add:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+@media (pointer: coarse) {
+  .list-row,
+  .list-sidebar__add {
+    height: 44px;
+  }
+
+  .list-row__menu-trigger {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+  }
+}

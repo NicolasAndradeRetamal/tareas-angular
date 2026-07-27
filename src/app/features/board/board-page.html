@@ -1,0 +1,251 @@
+<header class="topbar">
+  <div class="flex items-center gap-2">
+    <span class="xl:hidden">
+      <app-icon-button label="Abrir las listas" (clicked)="sidebarOpen.set(true)">
+        <app-icon name="menu" [size]="20" />
+      </app-icon-button>
+    </span>
+    <span class="flex items-center gap-2 font-semibold text-ink">
+      <app-icon name="layout" [size]="20" class="text-primary" />
+      Tareas
+    </span>
+  </div>
+
+  <div class="topbar__search">
+    <app-icon name="search" [size]="18" class="pointer-events-none absolute left-2.5 text-ink-subtle" />
+    <input
+      #searchInput
+      type="search"
+      class="topbar__search-input"
+      placeholder="Buscar tareas"
+      aria-label="Buscar tareas"
+      [value]="view.query()"
+      (input)="onSearchInput($event)"
+    />
+    @if (view.query().length > 0) {
+      <button type="button" class="topbar__search-clear" aria-label="Vaciar la búsqueda" (click)="clearSearch()">
+        <app-icon name="x" [size]="16" />
+      </button>
+    } @else {
+      <kbd class="kbd absolute right-2.5" aria-hidden="true">/</kbd>
+    }
+  </div>
+
+  <div class="flex items-center gap-1.5">
+    <span class="hidden sm:block">
+      <app-button variant="primary" (clicked)="openCreateTask()">
+        Nueva tarea
+        <kbd class="kbd" aria-hidden="true">N</kbd>
+      </app-button>
+    </span>
+    <span class="sm:hidden">
+      <app-icon-button label="Nueva tarea" hint="Nueva tarea (N)" (clicked)="openCreateTask()">
+        <app-icon name="plus" [size]="20" />
+      </app-icon-button>
+    </span>
+
+    <div class="relative" data-menu>
+      <app-icon-button
+        label="Cambiar el tema"
+        hint="Cambiar el tema (T)"
+        [pressed]="themeMenuOpen()"
+        (clicked)="themeMenuOpen.set(!themeMenuOpen())"
+      >
+        <app-icon [name]="themeIcon()" [size]="20" />
+      </app-icon-button>
+
+      @if (themeMenuOpen()) {
+        <div class="menu" role="menu">
+          @for (option of themeOptions; track option.value) {
+            <button
+              type="button"
+              role="menuitemradio"
+              class="menu__item"
+              [attr.aria-checked]="theme.preference() === option.value"
+              (click)="setThemePreference(option.value)"
+            >
+              <app-icon [name]="option.icon" [size]="16" />
+              {{ option.label }}
+              @if (theme.preference() === option.value) {
+                <app-icon name="check" [size]="16" class="ml-auto text-primary" />
+              }
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <span class="hidden md:block">
+      <app-icon-button label="Atajos de teclado" hint="Atajos de teclado (?)" (clicked)="shortcutsOpen.set(true)">
+        <app-icon name="keyboard" [size]="20" />
+      </app-icon-button>
+    </span>
+
+    <div class="relative" data-menu>
+      <app-icon-button label="Más acciones" [pressed]="overflowMenuOpen()" (clicked)="overflowMenuOpen.set(!overflowMenuOpen())">
+        <app-icon name="more" [size]="20" />
+      </app-icon-button>
+
+      @if (overflowMenuOpen()) {
+        <div class="menu" role="menu">
+          <button type="button" role="menuitem" class="menu__item md:hidden" (click)="overflowMenuOpen.set(false); shortcutsOpen.set(true)">
+            <app-icon name="keyboard" [size]="16" />
+            Atajos de teclado
+          </button>
+          <div class="menu__divider" role="separator"></div>
+          <button type="button" role="menuitem" class="menu__item menu__item--danger" (click)="requestClearBoard()">
+            <app-icon name="trash" [size]="16" />
+            Vaciar el tablero
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  @if (sidebarOpen()) {
+    <div class="sidebar-scrim xl:hidden" (click)="sidebarOpen.set(false)"></div>
+  }
+
+  <div class="sidebar" [class.sidebar--open]="sidebarOpen()">
+    <app-list-sidebar
+      [lists]="listSummaries()"
+      [activeListId]="view.activeListId()"
+      [totalCount]="pendingTotal()"
+      (selectList)="selectList($event)"
+      (createList)="openCreateList()"
+      (renameList)="openRenameList($event)"
+      (deleteList)="requestDeleteList($event)"
+    />
+  </div>
+
+  <main id="contenido" class="main">
+    @if (showLoadIssue()) {
+      <app-banner
+        variant="warning"
+        message="No pudimos leer el tablero guardado y empezamos uno nuevo. Guardamos una copia del contenido anterior por si la necesitas."
+        [dismissible]="true"
+        (dismissed)="loadIssueDismissed.set(true)"
+      />
+    }
+
+    @if (persistenceMessage(); as message) {
+      <app-banner
+        [variant]="persistenceError() === 'unavailable' ? 'warning' : 'error'"
+        [message]="message"
+        [actionLabel]="persistenceError() === 'quota' ? 'Vaciar el tablero' : null"
+        (action)="requestClearBoard()"
+      />
+    }
+
+    @if (showSeedNotice()) {
+      <app-banner
+        variant="info"
+        lead="Esto es un tablero de ejemplo."
+        message="Tareas guarda todo en este navegador, sin cuentas ni servidor. Edita lo que quieras o empieza de cero."
+        actionLabel="Vaciar el tablero"
+        [dismissible]="true"
+        (action)="requestClearBoard()"
+        (dismissed)="seedNoticeDismissed.set(true)"
+      />
+    }
+
+    <app-board-toolbar
+      class="toolbar"
+      [contextTitle]="contextTitle()"
+      [contextColorClass]="contextColorClass()"
+      [statusFilter]="view.statusFilter()"
+      [priorityFilter]="view.priorityFilter()"
+      [hasActiveFilters]="view.hasActiveFilters()"
+      [counts]="view.counts()"
+      [visibleCount]="view.visibleTasks().length"
+      (statusFilterChange)="view.setStatusFilter($event)"
+      (priorityFilterChange)="view.setPriorityFilter($event)"
+      (resetFilters)="view.resetFilters()"
+    />
+
+    @if (view.isEmpty()) {
+      <app-empty-state
+        icon="layout"
+        title="Tu tablero está vacío"
+        message="Crea tu primera tarea y aparecerá en «Por hacer». Todo se guarda en este navegador."
+        primaryLabel="Crear la primera tarea"
+        (primaryAction)="openCreateTask()"
+      />
+    } @else if (activeListIsEmpty()) {
+      <app-empty-state
+        icon="inbox"
+        [title]="'«' + contextTitle() + '» no tiene tareas todavía'"
+        message="Añade la primera o mira el resto del tablero."
+        primaryLabel="Añadir tarea a esta lista"
+        secondaryLabel="Ver todas las tareas"
+        (primaryAction)="openCreateTask()"
+        (secondaryAction)="selectList(null)"
+      />
+    } @else {
+      @if (view.hasNoResults()) {
+        <div class="no-results">
+          <p class="text-base font-semibold text-ink">Ninguna tarea coincide</p>
+          <p class="mt-1 text-sm text-ink-muted">{{ filterSummary() }}</p>
+          <div class="mt-3">
+            <app-button variant="secondary" size="sm" (clicked)="view.resetFilters()">Limpiar filtros</app-button>
+          </div>
+        </div>
+      }
+
+      <div class="columns" (keydown)="onBoardKeydown($event)">
+        @for (column of view.columns(); track column.status) {
+          <app-task-column
+            [column]="column"
+            [listIndex]="listIndex()"
+            [showListMeta]="view.activeListId() === null"
+            [focusedTaskId]="rovingTaskId()"
+            (addTask)="openCreateTask(column.status)"
+            (editTask)="openEditTask($event)"
+            (toggleDone)="toggleDone($event)"
+            (duplicateTask)="duplicateTask($event)"
+            (deleteTask)="requestDeleteTask($event)"
+            (statusChange)="changeStatus($event)"
+            (focusTask)="onTaskFocused($event)"
+            (reordered)="onReordered(column.status, $event)"
+          />
+        }
+      </div>
+    }
+  </main>
+</div>
+
+<app-task-form
+  [open]="taskFormOpen()"
+  [mode]="taskFormMode()"
+  [task]="editingTask()"
+  [lists]="lists()"
+  [defaultListId]="view.activeListId()"
+  [defaultStatus]="newTaskStatus()"
+  (create)="onCreateTask($event)"
+  (update)="onUpdateTask($event)"
+  (deleteRequested)="requestDeleteTask($event)"
+  (closed)="closeTaskForm()"
+/>
+
+<app-list-form
+  [open]="listFormOpen()"
+  [mode]="listFormMode()"
+  [list]="editingList()"
+  (submitted)="onListFormSubmit($event)"
+  (closed)="listFormOpen.set(false)"
+/>
+
+<app-shortcuts-dialog [open]="shortcutsOpen()" (closed)="shortcutsOpen.set(false)" />
+
+@if (confirmCopy(); as copy) {
+  <app-confirm-dialog
+    [open]="true"
+    [title]="copy.title"
+    [message]="copy.message"
+    [confirmLabel]="copy.confirmLabel"
+    (confirmed)="onConfirmed()"
+    (cancelled)="confirmRequest.set(null)"
+  />
+}

@@ -1,23 +1,28 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { describe, expect, it } from 'vitest';
 import { App } from './app';
 
 describe('App', () => {
-  beforeEach(async () => {
+  async function setup() {
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [provideRouter([])],
     }).compileComponents();
+    return TestBed.createComponent(App);
+  }
+
+  it('should create the app', async () => {
+    const fixture = await setup();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(App);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it('should render the title', async () => {
-    const fixture = TestBed.createComponent(App);
+  it('should expose a skip link pointing at the main content', async () => {
+    const fixture = await setup();
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('tareas-angular');
+
+    const link = (fixture.nativeElement as HTMLElement).querySelector('a.skip-link');
+    expect(link?.getAttribute('href')).toBe('#contenido');
+    expect(link?.textContent?.trim()).toBe('Saltar al contenido');
   });
 });

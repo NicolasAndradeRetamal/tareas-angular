@@ -1,0 +1,76 @@
+import { ChangeDetectionStrategy, Component, effect, inject, input, output, untracked } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LIST_COLORS, LIST_NAME_MAX_LENGTH } from '../../../core/models/list';
+import type { List, ListColor } from '../../../core/models/list';
+import { Button } from '../../../shared/ui/button';
+import { Dialog } from '../../../shared/ui/dialog';
+import { LIST_COLOR_BG_CLASS, LIST_COLOR_LABEL } from '../../../shared/ui/list-color';
+
+export type ListFormMode = 'create' | 'edit';
+
+export interface ListFormResult {
+  readonly name: string;
+  readonly color: ListColor;
+}
+
+@Component({
+  selector: 'app-list-form',
+  imports: [ReactiveFormsModule, Dialog, Button],
+  templateUrl: './list-form.html',
+  styleUrl: './list-form.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ListForm {
+  private readonly fb = inject(FormBuilder);
+
+  readonly open = input.required<boolean>();
+  readonly mode = input.required<ListFormMode>();
+  readonly list = input<List | null>(null);
+
+  readonly submitted = output<ListFormResult>();
+  readonly closed = output<void>();
+
+  protected readonly colors = LIST_COLORS;
+  protected readonly colorClass = LIST_COLOR_BG_CLASS;
+  protected readonly colorLabel = LIST_COLOR_LABEL;
+  protected readonly nameMax = LIST_NAME_MAX_LENGTH;
+
+  protected readonly form = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.maxLength(LIST_NAME_MAX_LENGTH)]],
+    color: ['slate' as ListColor],
+  });
+
+  private wasOpen = false;
+
+  constructor() {
+    effect(() => {
+      const isOpen = this.open();
+      if (isOpen && !this.wasOpen) {
+        untracked(() => this.populateForm());
+      }
+      this.wasOpen = isOpen;
+    });
+  }
+
+  protected get isEdit(): boolean {
+    return this.mode() === 'edit';
+  }
+
+  protected submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+    const value = this.form.getRawValue();
+    this.submitted.emit({ name: value.name, color: value.color });
+    this.closed.emit();
+  }
+
+  private populateForm(): void {
+    const list = this.list();
+    this.form.reset({
+      name: list?.name ?? '',
+      color: list?.color ?? 'slate',
+    });
+  }
+}

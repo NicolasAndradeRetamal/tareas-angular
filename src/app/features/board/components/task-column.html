@@ -1,0 +1,48 @@
+<header class="task-column__header">
+  <span class="flex items-center gap-1.5" [class]="statusTextClass()">
+    <app-icon [name]="statusIcon()" [size]="20" />
+  </span>
+  <h2 [id]="headingId" class="task-column__title tracking-caps">{{ column().label }}</h2>
+  <span class="task-column__count" [attr.aria-label]="column().tasks.length + ' tareas'" data-numeric>
+    {{ column().tasks.length }}
+  </span>
+  <app-icon-button [label]="'Añadir tarea a ' + column().label" size="sm" (clicked)="addTask.emit()">
+    <app-icon name="plus" [size]="20" />
+  </app-icon-button>
+</header>
+
+<div
+  class="task-column__body"
+  cdkDropList
+  [cdkDropListDisabled]="!dragEnabled()"
+  [cdkDropListData]="column().tasks"
+  (cdkDropListDropped)="onDrop($event)"
+>
+  @if (column().tasks.length === 0) {
+    <div class="task-column__empty">Sin tareas en «{{ column().label }}»</div>
+  } @else {
+    @for (task of column().tasks; track task.id) {
+      <app-task-card
+        cdkDrag
+        [cdkDragDisabled]="!dragEnabled()"
+        [cdkDragData]="task"
+        [task]="task"
+        [list]="listIndex().get(task.listId) ?? null"
+        [showListMeta]="showListMeta()"
+        [roving]="task.id === focusedTaskId()"
+        [highlighted]="task.id === highlightedTaskId()"
+        (toggleDone)="toggleDone.emit(task.id)"
+        (edit)="editTask.emit(task.id)"
+        (duplicate)="duplicateTask.emit(task.id)"
+        (remove)="deleteTask.emit(task.id)"
+        (statusChange)="statusChange.emit({ id: task.id, status: $event })"
+        (focused)="focusTask.emit(task.id)"
+      />
+    }
+  }
+</div>
+
+<button type="button" class="task-column__footer-add" (click)="addTask.emit()">
+  <app-icon name="plus" [size]="16" />
+  Añadir tarea
+</button>
