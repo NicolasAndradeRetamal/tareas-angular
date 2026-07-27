@@ -1,131 +1,131 @@
 <header class="topbar">
-  <div class="flex items-center gap-2">
-    <span class="xl:hidden">
-      <app-icon-button label="Abrir las listas" (clicked)="sidebarOpen.set(true)">
-        <app-icon name="menu" [size]="20" />
-      </app-icon-button>
-    </span>
-    <span class="flex items-center gap-2 font-semibold text-ink">
-      <app-icon name="layout" [size]="20" class="text-primary" />
-      Tareas
-    </span>
-  </div>
+  <div class="topbar__row">
+    <div class="flex items-center gap-2">
+      <span class="xl:hidden">
+        <app-icon-button label="Abrir las listas" (clicked)="sidebarOpen.set(true)">
+          <app-icon name="menu" [size]="20" />
+        </app-icon-button>
+      </span>
+      <span class="flex items-center gap-2 font-semibold text-ink">
+        <app-icon name="layout" [size]="20" class="text-primary" />
+        Tareas
+      </span>
+    </div>
 
-  <div class="topbar__search">
-    <app-icon
-      name="search"
-      [size]="18"
-      class="pointer-events-none absolute left-2.5 text-ink-subtle"
-    />
-    <input
-      #searchInput
-      type="search"
-      class="topbar__search-input"
-      placeholder="Buscar tareas"
-      aria-label="Buscar tareas"
-      [value]="view.query()"
-      (input)="onSearchInput($event)"
-    />
-    @if (view.query().length > 0) {
-      <button
-        type="button"
-        class="topbar__search-clear"
-        aria-label="Vaciar la búsqueda"
-        (click)="clearSearch()"
-      >
-        <app-icon name="x" [size]="16" />
-      </button>
-    } @else {
-      <kbd class="kbd absolute right-2.5" aria-hidden="true">/</kbd>
-    }
-  </div>
-
-  <div class="flex items-center gap-1.5">
-    <span class="hidden sm:block">
-      <app-button variant="primary" (clicked)="openCreateTask()">
-        Nueva tarea
-        <kbd class="kbd" aria-hidden="true">N</kbd>
-      </app-button>
-    </span>
-    <span class="sm:hidden">
-      <app-icon-button label="Nueva tarea" hint="Nueva tarea (N)" (clicked)="openCreateTask()">
-        <app-icon name="plus" [size]="20" />
-      </app-icon-button>
-    </span>
-
-    <div class="relative" data-menu="theme">
-      <app-icon-button
-        label="Cambiar el tema"
-        hint="Cambiar el tema (T)"
-        [pressed]="themeMenuOpen()"
-        (clicked)="themeMenuOpen.set(!themeMenuOpen())"
-      >
-        <app-icon [name]="themeIcon()" [size]="20" />
-      </app-icon-button>
-
-      @if (themeMenuOpen()) {
-        <div class="menu" role="menu">
-          @for (option of themeOptions; track option.value) {
-            <button
-              type="button"
-              role="menuitemradio"
-              class="menu__item"
-              [attr.aria-checked]="theme.preference() === option.value"
-              (click)="setThemePreference(option.value)"
-            >
-              <app-icon [name]="option.icon" [size]="16" />
-              {{ option.label }}
-              @if (theme.preference() === option.value) {
-                <app-icon name="check" [size]="16" class="ml-auto text-primary" />
-              }
-            </button>
-          }
-        </div>
+    <div class="topbar__search">
+      <app-icon
+        name="search"
+        [size]="18"
+        class="pointer-events-none absolute left-2.5 text-ink-subtle"
+      />
+      <input
+        #searchInput
+        type="search"
+        class="topbar__search-input"
+        placeholder="Buscar tareas"
+        aria-label="Buscar tareas"
+        title="Buscar tareas (/)"
+        [value]="view.query()"
+        (input)="onSearchInput($event)"
+      />
+      @if (view.query().length > 0) {
+        <button
+          type="button"
+          class="topbar__search-clear"
+          aria-label="Vaciar la búsqueda"
+          (click)="clearSearch()"
+        >
+          <app-icon name="x" [size]="16" />
+        </button>
       }
     </div>
 
-    <span class="hidden md:block">
-      <app-icon-button
-        label="Atajos de teclado"
-        hint="Atajos de teclado (?)"
-        (clicked)="shortcutsOpen.set(true)"
-      >
-        <app-icon name="keyboard" [size]="20" />
-      </app-icon-button>
-    </span>
+    <div class="flex shrink-0 items-center gap-1.5">
+      <span class="hidden sm:block">
+        <app-button variant="primary" title="Nueva tarea (N)" (clicked)="openCreateTask()">
+          Nueva tarea
+        </app-button>
+      </span>
+      <span class="sm:hidden">
+        <app-icon-button label="Nueva tarea" hint="Nueva tarea (N)" (clicked)="openCreateTask()">
+          <app-icon name="plus" [size]="20" />
+        </app-icon-button>
+      </span>
 
-    <div class="relative" data-menu="overflow">
-      <app-icon-button
-        label="Más acciones"
-        [pressed]="overflowMenuOpen()"
-        (clicked)="overflowMenuOpen.set(!overflowMenuOpen())"
-      >
-        <app-icon name="more" [size]="20" />
-      </app-icon-button>
+      <div class="relative" data-menu="theme">
+        <app-icon-button
+          label="Cambiar el tema"
+          hint="Cambiar el tema (T)"
+          [pressed]="themeMenuOpen()"
+          (clicked)="themeMenuOpen.set(!themeMenuOpen())"
+        >
+          <app-icon [name]="themeIcon()" [size]="20" />
+        </app-icon-button>
 
-      @if (overflowMenuOpen()) {
-        <div class="menu" role="menu">
-          <button
-            type="button"
-            role="menuitem"
-            class="menu__item md:hidden"
-            (click)="overflowMenuOpen.set(false); shortcutsOpen.set(true)"
-          >
-            <app-icon name="keyboard" [size]="16" />
-            Atajos de teclado
-          </button>
-          <div class="menu__divider" role="separator"></div>
-          <button
-            type="button"
-            role="menuitem"
-            class="menu__item menu__item--danger"
-            (click)="requestClearBoard()"
-          >
-            <app-icon name="trash" [size]="16" />
-            Vaciar el tablero
-          </button>
-        </div>
-      }
+        @if (themeMenuOpen()) {
+          <div class="menu" role="menu">
+            @for (option of themeOptions; track option.value) {
+              <button
+                type="button"
+                role="menuitemradio"
+                class="menu__item"
+                [attr.aria-checked]="theme.preference() === option.value"
+                (click)="setThemePreference(option.value)"
+              >
+                <app-icon [name]="option.icon" [size]="16" />
+                {{ option.label }}
+                @if (theme.preference() === option.value) {
+                  <app-icon name="check" [size]="16" class="ml-auto text-primary" />
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <span class="hidden md:block">
+        <app-icon-button
+          label="Atajos de teclado"
+          hint="Atajos de teclado (?)"
+          (clicked)="shortcutsOpen.set(true)"
+        >
+          <app-icon name="keyboard" [size]="20" />
+        </app-icon-button>
+      </span>
+
+      <div class="relative" data-menu="overflow">
+        <app-icon-button
+          label="Más acciones"
+          [pressed]="overflowMenuOpen()"
+          (clicked)="overflowMenuOpen.set(!overflowMenuOpen())"
+        >
+          <app-icon name="more" [size]="20" />
+        </app-icon-button>
+
+        @if (overflowMenuOpen()) {
+          <div class="menu" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              class="menu__item md:hidden"
+              (click)="overflowMenuOpen.set(false); shortcutsOpen.set(true)"
+            >
+              <app-icon name="keyboard" [size]="16" />
+              Atajos de teclado
+            </button>
+            <div class="menu__divider" role="separator"></div>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu__item menu__item--danger"
+              (click)="requestClearBoard()"
+            >
+              <app-icon name="trash" [size]="16" />
+              Vaciar el tablero
+            </button>
+          </div>
+        }
+      </div>
     </div>
   </div>
 </header>
@@ -179,7 +179,6 @@
     }
 
     <app-board-toolbar
-      class="toolbar"
       [contextTitle]="contextTitle()"
       [contextColorClass]="contextColorClass()"
       [statusFilter]="view.statusFilter()"
@@ -231,8 +230,8 @@
             [showListMeta]="view.activeListId() === null"
             [focusedTaskId]="rovingTaskId()"
             [highlightedTaskId]="highlightedTaskId()"
-            [dragEnabled]="dragEnabled()"
             (addTask)="openCreateTask(column.status)"
+            (openTask)="openDetail($event)"
             (editTask)="openEditTask($event)"
             (toggleDone)="toggleDone($event)"
             (duplicateTask)="duplicateTask($event)"
@@ -259,6 +258,21 @@
   (deleteRequested)="requestDeleteTask($event)"
   (closed)="closeTaskForm()"
 />
+
+<app-task-detail
+  [open]="detailTaskId() !== null"
+  [task]="detailTask()"
+  [list]="detailList()"
+  (edit)="editFromDetail()"
+  (duplicate)="duplicateFromDetail()"
+  (remove)="removeFromDetail()"
+  (toggleDone)="toggleDoneFromDetail()"
+  (closed)="closeDetail()"
+/>
+
+@if (toastMessage(); as message) {
+  <app-toast [message]="message" actionLabel="Deshacer" (action)="undoLastAction()" />
+}
 
 <app-list-form
   [open]="listFormOpen()"

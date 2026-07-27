@@ -6,6 +6,22 @@
   padding-block: 12px;
   padding-inline: 16px;
   border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+:host > * {
+  min-width: 0;
+}
+
+/* min-width lets the row shrink below its content; without it a flex item never
+   shrinks and pushes the whole page into horizontal scroll on narrow screens. */
+.toolbar__filters {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .segmented {
@@ -19,7 +35,7 @@
 
 .segmented__option {
   height: 28px;
-  padding-inline: 10px;
+  padding-inline: 8px;
   border-radius: calc(var(--radius-sm) - 2px);
   font-size: var(--text-xs);
   font-weight: 500;
