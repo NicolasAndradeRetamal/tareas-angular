@@ -44,7 +44,7 @@
       </app-icon-button>
     </span>
 
-    <div class="relative" data-menu>
+    <div class="relative" data-menu="theme">
       <app-icon-button
         label="Cambiar el tema"
         hint="Cambiar el tema (T)"
@@ -81,7 +81,7 @@
       </app-icon-button>
     </span>
 
-    <div class="relative" data-menu>
+    <div class="relative" data-menu="overflow">
       <app-icon-button label="Más acciones" [pressed]="overflowMenuOpen()" (clicked)="overflowMenuOpen.set(!overflowMenuOpen())">
         <app-icon name="more" [size]="20" />
       </app-icon-button>
@@ -121,10 +121,10 @@
   </div>
 
   <main id="contenido" class="main">
-    @if (showLoadIssue()) {
+    @if (loadIssueMessage(); as message) {
       <app-banner
         variant="warning"
-        message="No pudimos leer el tablero guardado y empezamos uno nuevo. Guardamos una copia del contenido anterior por si la necesitas."
+        [message]="message"
         [dismissible]="true"
         (dismissed)="loadIssueDismissed.set(true)"
       />
@@ -201,6 +201,8 @@
             [listIndex]="listIndex()"
             [showListMeta]="view.activeListId() === null"
             [focusedTaskId]="rovingTaskId()"
+            [highlightedTaskId]="highlightedTaskId()"
+            [dragEnabled]="dragEnabled()"
             (addTask)="openCreateTask(column.status)"
             (editTask)="openEditTask($event)"
             (toggleDone)="toggleDone($event)"
@@ -239,13 +241,11 @@
 
 <app-shortcuts-dialog [open]="shortcutsOpen()" (closed)="shortcutsOpen.set(false)" />
 
-@if (confirmCopy(); as copy) {
-  <app-confirm-dialog
-    [open]="true"
-    [title]="copy.title"
-    [message]="copy.message"
-    [confirmLabel]="copy.confirmLabel"
-    (confirmed)="onConfirmed()"
-    (cancelled)="confirmRequest.set(null)"
-  />
-}
+<app-confirm-dialog
+  [open]="confirmRequest() !== null"
+  [title]="confirmCopy().title"
+  [message]="confirmCopy().message"
+  [confirmLabel]="confirmCopy().confirmLabel"
+  (confirmed)="onConfirmed()"
+  (cancelled)="confirmRequest.set(null)"
+/>
