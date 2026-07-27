@@ -10,6 +10,7 @@
       role="checkbox"
       [attr.aria-checked]="task().status === 'done'"
       [attr.aria-label]="(task().status === 'done' ? 'Reabrir: ' : 'Marcar como completada: ') + task().title"
+      [attr.tabindex]="roving() ? 0 : -1"
       class="task-checkbox mt-0.5 shrink-0"
       [class.task-checkbox--checked]="task().status === 'done'"
       (click)="toggleDone.emit()"
@@ -28,15 +29,18 @@
       {{ task().title }}
     </h3>
 
-    <button
-      type="button"
-      cdkDragHandle
-      class="task-card__handle shrink-0"
-      [attr.aria-label]="'Reordenar la tarea ' + task().title"
-      aria-describedby="task-card-drag-hint"
-    >
-      <app-icon name="grip" [size]="20" />
-    </button>
+    @if (dragEnabled()) {
+      <button
+        type="button"
+        cdkDragHandle
+        class="task-card__handle shrink-0"
+        [attr.aria-label]="'Reordenar la tarea ' + task().title"
+        [attr.aria-describedby]="hintId"
+        [attr.tabindex]="roving() ? 0 : -1"
+      >
+        <app-icon name="grip" [size]="20" />
+      </button>
+    }
   </div>
 
   @if (task().description) {
@@ -71,6 +75,7 @@
         [attr.aria-label]="'Abrir el menú de la tarea ' + task().title"
         aria-haspopup="menu"
         [attr.aria-expanded]="menuOpen()"
+        [attr.tabindex]="roving() ? 0 : -1"
         (click)="toggleMenu()"
       >
         <app-icon name="more" [size]="20" />
@@ -114,4 +119,4 @@
   </div>
 </div>
 
-<span id="task-card-drag-hint" class="sr-only">Usa el menú de la tarea para moverla de columna.</span>
+<span [id]="hintId" class="sr-only">Usa el menú de la tarea para moverla de columna.</span>

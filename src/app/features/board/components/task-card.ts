@@ -6,6 +6,7 @@ import type { Task, TaskStatus } from '../../../core/models/task';
 import { daysUntil, isOverdue, todayIso } from '../../../core/util/date';
 import { Badge } from '../../../shared/ui/badge';
 import type { BadgeVariant } from '../../../shared/ui/badge';
+import { nextDomId } from '../../../shared/ui/dom-id';
 import { Icon } from '../../../shared/ui/icon';
 import { LIST_COLOR_BG_CLASS } from '../../../shared/ui/list-color';
 import { DueLabelPipe } from '../../../shared/pipes/due-label-pipe';
@@ -50,6 +51,7 @@ export class TaskCard {
   readonly showListMeta = input(false);
   readonly highlighted = input(false);
   readonly roving = input(false);
+  readonly dragEnabled = input(true);
 
   readonly toggleDone = output<void>();
   readonly edit = output<void>();
@@ -59,7 +61,8 @@ export class TaskCard {
   readonly focused = output<void>();
 
   protected readonly menuOpen = signal(false);
-  protected readonly titleId = `task-title-${Math.random().toString(36).slice(2)}`;
+  protected readonly titleId = nextDomId('task-title');
+  protected readonly hintId = nextDomId('task-drag-hint');
   private readonly today = todayIso();
 
   protected readonly overdue = computed(() => isOverdue(this.task(), this.today));
