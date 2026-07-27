@@ -14,7 +14,7 @@ import { Router } from '@angular/router';
 import type { CreateTaskInput, UpdateTaskInput } from '../../core/models/board-state';
 import type { List, ListId } from '../../core/models/list';
 import type { Task, TaskId, TaskStatus } from '../../core/models/task';
-import { PRIORITY_LABELS, STATUS_LABELS } from '../../core/models/task';
+import { PRIORITY_LABELS } from '../../core/models/task';
 import { BoardStore } from '../../core/state/board-store';
 import { BoardViewStore } from '../../core/state/board-view-store';
 import type { StatusFilter } from '../../core/state/board-view-store';
@@ -92,7 +92,6 @@ export class BoardPage {
   private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
   protected readonly themeOptions = THEME_OPTIONS;
-  protected readonly statusLabels = STATUS_LABELS;
 
   // --- UI state ---
   protected readonly sidebarOpen = signal(false);
@@ -117,7 +116,6 @@ export class BoardPage {
   // --- Derived ---
   protected readonly lists = this.board.lists;
   protected readonly listIndex = this.board.listIndex;
-  protected readonly canUndo = this.board.canUndo;
   protected readonly persistenceError = this.board.persistenceError;
 
   protected readonly editingTask = computed<Task | null>(() => {
