@@ -47,7 +47,7 @@ export interface Task {
   readonly priority: TaskPriority;
   readonly status: TaskStatus;
   readonly dueDate: IsoDate | null;
-  /** Fractional rank within (listId, status). */
+  /** Fractional rank within its status column, across every list. */
   readonly order: number;
   readonly createdAt: IsoDateTime;
   readonly updatedAt: IsoDateTime;

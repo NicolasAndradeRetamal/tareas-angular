@@ -83,17 +83,29 @@ describe('BoardPage', () => {
     expect(view.visibleTasks().every((task) => task.listId === list.id)).toBe(true);
   });
 
-  it('offers no drag handle while several lists share a column', async () => {
-    expect(
-      (fixture.nativeElement as HTMLElement).querySelectorAll('.task-card__handle').length,
-    ).toBe(0);
-
-    fixture.componentRef.setInput('listId', board.lists()[0].id);
-    await fixture.whenStable();
-
+  it('offers a drag handle in the default view, where several lists share a column', async () => {
+    expect(view.activeListId()).toBeNull();
     expect(
       (fixture.nativeElement as HTMLElement).querySelectorAll('.task-card__handle').length,
     ).toBeGreaterThan(0);
+  });
+
+  // Opening a dialog is covered end to end: jsdom has no HTMLDialogElement.showModal.
+
+  it('takes a completion back through the history', async () => {
+    const pending = view
+      .columns()
+      .flatMap((column) => column.tasks)
+      .find((task) => task.status !== 'done');
+    expect(pending).toBeDefined();
+
+    board.toggleTaskDone(pending!.id);
+    await fixture.whenStable();
+    expect(board.taskIndex().get(pending!.id)?.status).toBe('done');
+
+    board.undo();
+    await fixture.whenStable();
+    expect(board.taskIndex().get(pending!.id)?.status).toBe(pending!.status);
   });
 
   it('keeps the whole board on a single tab stop', async () => {
