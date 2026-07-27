@@ -1,0 +1,7 @@
+# esbuild is the only dependency allowed to run install scripts; the rest are
+# optional native speedups the toolchain works fine without.
+allowBuilds:
+  '@parcel/watcher': false
+  esbuild: true
+  lmdb: false
+  msgpackr-extract: false
