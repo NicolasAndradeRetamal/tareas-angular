@@ -1,0 +1,39 @@
+<div class="flex items-center gap-2">
+  @if (contextColorClass(); as cls) {
+    <span class="h-2 w-2 shrink-0 rounded-full" [class]="cls" aria-hidden="true"></span>
+  }
+  <h1 class="truncate text-base font-semibold text-ink sm:text-lg">{{ contextTitle() }}</h1>
+</div>
+
+<div class="flex items-center gap-2 overflow-x-auto">
+  <div class="segmented" role="group" aria-label="Filtrar por estado">
+    @for (option of statusOptions; track option.value) {
+      <button
+        type="button"
+        class="segmented__option"
+        [class.segmented__option--active]="statusFilter() === option.value"
+        [attr.aria-pressed]="statusFilter() === option.value"
+        (click)="statusFilterChange.emit(option.value)"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+
+  <label class="priority-filter" [class.priority-filter--active]="priorityFilter() !== null">
+    <span class="sr-only">Filtrar por prioridad</span>
+    <select class="priority-filter__select" [value]="priorityFilter() ?? ''" (change)="onPriorityChange($event)">
+      <option value="">Prioridad</option>
+      @for (priority of priorities; track priority) {
+        <option [value]="priority">{{ priority | priorityLabel }}</option>
+      }
+    </select>
+  </label>
+</div>
+
+<div class="flex flex-wrap items-center gap-2 sm:justify-end">
+  <p class="text-xs text-ink-muted" aria-live="polite" data-numeric>{{ summaryText() }}</p>
+  @if (hasActiveFilters()) {
+    <app-button variant="subtle" size="sm" (clicked)="resetFilters.emit()">Limpiar filtros</app-button>
+  }
+</div>

@@ -1,0 +1,117 @@
+<span class="task-card__stripe" [class]="priorityStripeClass()" aria-hidden="true"></span>
+@if (showListMeta() && list()) {
+  <span class="task-card__list-stripe" [class]="listDotClass()" aria-hidden="true"></span>
+}
+
+<div class="flex flex-col gap-2 p-3">
+  <div class="flex items-start gap-2">
+    <button
+      type="button"
+      role="checkbox"
+      [attr.aria-checked]="task().status === 'done'"
+      [attr.aria-label]="(task().status === 'done' ? 'Reabrir: ' : 'Marcar como completada: ') + task().title"
+      class="task-checkbox mt-0.5 shrink-0"
+      [class.task-checkbox--checked]="task().status === 'done'"
+      (click)="toggleDone.emit()"
+    >
+      @if (task().status === 'done') {
+        <app-icon name="check" [size]="14" />
+      }
+    </button>
+
+    <h3
+      [id]="titleId"
+      class="min-w-0 flex-1 line-clamp-2 text-sm font-medium leading-5 text-ink"
+      [class.line-through]="task().status === 'done'"
+      [class.text-ink-subtle]="task().status === 'done'"
+    >
+      {{ task().title }}
+    </h3>
+
+    <button
+      type="button"
+      cdkDragHandle
+      class="task-card__handle shrink-0"
+      [attr.aria-label]="'Reordenar la tarea ' + task().title"
+      aria-describedby="task-card-drag-hint"
+    >
+      <app-icon name="grip" [size]="20" />
+    </button>
+  </div>
+
+  @if (task().description) {
+    <p class="line-clamp-1 text-xs text-ink-muted">{{ task().description }}</p>
+  }
+
+  <div class="flex h-5 flex-wrap items-center gap-2 text-xs">
+    <div class="flex items-end gap-0.5" role="img" [attr.aria-label]="'Prioridad: ' + (task().priority | priorityLabel)">
+      @for (active of priorityBars(); track $index) {
+        <span class="h-2.5 w-0.5 rounded-[2px]" [class]="active ? priorityBarClass() : 'bg-line-strong/40'"></span>
+      }
+    </div>
+
+    @if (task().dueDate) {
+      <app-badge [variant]="dueVariant()">
+        <app-icon [name]="overdue() ? 'warning' : 'calendar'" [size]="14" />
+        <time [attr.datetime]="task().dueDate">{{ task().dueDate | dueLabel }}</time>
+      </app-badge>
+    }
+
+    @if (showListMeta() && list(); as list) {
+      <span class="flex items-center gap-1 text-ink-subtle">
+        <span class="h-2 w-2 rounded-full" [class]="listDotClass()"></span>
+        {{ list.name }}
+      </span>
+    }
+
+    <div class="relative ml-auto">
+      <button
+        type="button"
+        class="task-card__menu-trigger"
+        [attr.aria-label]="'Abrir el menú de la tarea ' + task().title"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="menuOpen()"
+        (click)="toggleMenu()"
+      >
+        <app-icon name="more" [size]="20" />
+      </button>
+
+      @if (menuOpen()) {
+        <div class="task-card__menu" role="menu">
+          <button type="button" role="menuitem" class="task-card__menu-item" (click)="runAction(() => edit.emit())">
+            <app-icon name="pencil" [size]="16" />
+            Editar
+          </button>
+          <button type="button" role="menuitem" class="task-card__menu-item" (click)="runAction(() => duplicate.emit())">
+            <app-icon name="copy" [size]="16" />
+            Duplicar
+          </button>
+          <div class="task-card__menu-divider" role="separator"></div>
+          @for (option of otherStatuses(); track option.status) {
+            <button
+              type="button"
+              role="menuitem"
+              class="task-card__menu-item"
+              (click)="runAction(() => statusChange.emit(option.status))"
+            >
+              <app-icon name="chevron-right" [size]="16" />
+              Mover a {{ option.label }}
+            </button>
+          }
+          <div class="task-card__menu-divider" role="separator"></div>
+          <button
+            type="button"
+            role="menuitem"
+            class="task-card__menu-item task-card__menu-item--danger"
+            (click)="runAction(() => remove.emit())"
+          >
+            <app-icon name="trash" [size]="16" />
+            Eliminar
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<span id="task-card-drag-hint" class="sr-only">Usa el menú de la tarea para moverla de columna.</span>

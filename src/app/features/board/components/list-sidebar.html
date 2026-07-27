@@ -1,0 +1,71 @@
+<p class="list-sidebar__label tracking-caps">Listas</p>
+
+<ul class="flex flex-col gap-0.5">
+  <li>
+    <button
+      type="button"
+      class="list-row"
+      [class.list-row--active]="activeListId() === null"
+      [attr.aria-current]="activeListId() === null ? 'page' : null"
+      (click)="selectList.emit(null)"
+    >
+      <app-icon name="inbox" [size]="18" />
+      <span class="flex-1 truncate text-left">Todas las tareas</span>
+      <span class="list-row__count" data-numeric>{{ totalCount() }}</span>
+    </button>
+  </li>
+
+  @for (entry of lists(); track entry.list.id) {
+    <li class="relative">
+      <button
+        type="button"
+        class="list-row group"
+        [class.list-row--active]="activeListId() === entry.list.id"
+        [attr.aria-current]="activeListId() === entry.list.id ? 'page' : null"
+        (click)="selectList.emit(entry.list.id)"
+      >
+        <span class="h-2 w-2 shrink-0 rounded-full" [class]="dotClass[entry.list.color]"></span>
+        <span class="flex-1 truncate text-left">{{ entry.list.name }}</span>
+        <span class="list-row__count" data-numeric>{{ entry.count }}</span>
+        <span
+          role="button"
+          tabindex="0"
+          class="list-row__menu-trigger"
+          [attr.aria-label]="'Abrir el menú de la lista ' + entry.list.name"
+          aria-haspopup="menu"
+          (click)="$event.stopPropagation(); toggleMenu(entry.list.id)"
+          (keydown.enter)="$event.stopPropagation(); toggleMenu(entry.list.id)"
+        >
+          <app-icon name="more" [size]="18" />
+        </span>
+      </button>
+
+      @if (openMenuFor() === entry.list.id) {
+        <div class="list-row__menu" role="menu">
+          <button type="button" role="menuitem" class="list-row__menu-item" (click)="runAction(() => renameList.emit(entry.list.id))">
+            <app-icon name="pencil" [size]="16" />
+            Renombrar
+          </button>
+          <div class="list-row__menu-divider" role="separator"></div>
+          <button
+            type="button"
+            role="menuitem"
+            class="list-row__menu-item list-row__menu-item--danger"
+            [disabled]="!canDelete()"
+            [attr.title]="!canDelete() ? 'El tablero necesita al menos una lista' : null"
+            (click)="canDelete() && runAction(() => deleteList.emit(entry.list.id))"
+          >
+            <app-icon name="trash" [size]="16" />
+            Eliminar
+          </button>
+        </div>
+      }
+    </li>
+  }
+</ul>
+
+<button type="button" class="list-sidebar__add" (click)="createList.emit()">
+  <app-icon name="plus" [size]="16" />
+  Nueva lista
+  <kbd class="kbd ml-auto" aria-hidden="true">L</kbd>
+</button>
