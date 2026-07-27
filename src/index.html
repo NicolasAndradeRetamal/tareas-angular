@@ -5,7 +5,26 @@
   <title>Tareas</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Gestor de tareas estilo kanban con navegación completa por teclado. Los datos se guardan solo en tu navegador.">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#f4f4f8" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0d0d12" media="(prefers-color-scheme: dark)">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    // Applies the stored theme before first paint; without it the dark theme flashes white.
+    (function () {
+      try {
+        var stored = localStorage.getItem('tareas-angular:theme');
+        var preference = stored === 'light' || stored === 'dark' ? stored : 'system';
+        var dark = preference === 'dark'
+          || (preference === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (error) {
+        /* Private mode or blocked storage: the app falls back to the system theme. */
+      }
+    })();
+  </script>
 </head>
 <body>
   <app-root></app-root>
