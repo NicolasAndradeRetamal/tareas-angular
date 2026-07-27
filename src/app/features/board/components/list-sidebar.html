@@ -27,17 +27,17 @@
         <span class="h-2 w-2 shrink-0 rounded-full" [class]="dotClass[entry.list.color]"></span>
         <span class="flex-1 truncate text-left">{{ entry.list.name }}</span>
         <span class="list-row__count" data-numeric>{{ entry.count }}</span>
-        <span
-          role="button"
-          tabindex="0"
-          class="list-row__menu-trigger"
-          [attr.aria-label]="'Abrir el menú de la lista ' + entry.list.name"
-          aria-haspopup="menu"
-          (click)="$event.stopPropagation(); toggleMenu(entry.list.id)"
-          (keydown.enter)="$event.stopPropagation(); toggleMenu(entry.list.id)"
-        >
-          <app-icon name="more" [size]="18" />
-        </span>
+      </button>
+
+      <button
+        type="button"
+        class="list-row__menu-trigger"
+        [attr.aria-label]="'Abrir el menú de la lista ' + entry.list.name"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="openMenuFor() === entry.list.id"
+        (click)="toggleMenu(entry.list.id)"
+      >
+        <app-icon name="more" [size]="18" />
       </button>
 
       @if (openMenuFor() === entry.list.id) {
