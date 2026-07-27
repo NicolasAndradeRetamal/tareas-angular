@@ -131,6 +131,18 @@ for (const [nombre, viewport] of Object.entries(VIEWPORTS)) {
 test.describe('tablero', () => {
   test.use({ viewport: VIEWPORTS.escritorio });
 
+  test('el panel de listas está a la vista en escritorio, sin abrir nada', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    // En escritorio no hay botón que abra el cajón: si no se ve solo, no hay forma de llegar.
+    const panel = page.locator('.sidebar');
+    await expect(panel).toBeVisible();
+    await expect(panel.getByRole('button', { name: /todas las tareas/i })).toBeVisible();
+
+    const caja = await panel.boundingBox();
+    expect(caja!.x + caja!.width, 'el panel debe quedar dentro de la pantalla').toBeGreaterThan(0);
+  });
+
   test('abrir una tarjeta muestra el detalle completo de la tarea', async ({ page }) => {
     await irA(page, '/tablero');
 

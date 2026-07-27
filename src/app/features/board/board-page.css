@@ -140,6 +140,9 @@
     z-index: 10;
     height: calc(100dvh - 3.75rem);
     transform: none;
+    /* The drawer hides itself to stay out of the tab order; here it is permanent. */
+    visibility: visible;
+    transition: none;
     flex-shrink: 0;
   }
 }
