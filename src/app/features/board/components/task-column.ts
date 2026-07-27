@@ -4,21 +4,22 @@ import type { BoardColumn } from '../../../core/state/board-view-store';
 import type { ListId } from '../../../core/models/list';
 import type { List } from '../../../core/models/list';
 import type { Task, TaskId, TaskStatus } from '../../../core/models/task';
+import { nextDomId } from '../../../shared/ui/dom-id';
 import { IconButton } from '../../../shared/ui/icon-button';
 import type { IconName } from '../../../shared/ui/icon';
 import { Icon } from '../../../shared/ui/icon';
 import { TaskCard } from './task-card';
 
 const STATUS_ICON: Record<TaskStatus, IconName> = {
-  'todo': 'circle-dashed',
+  todo: 'circle-dashed',
   'in-progress': 'circle-half',
-  'done': 'circle-check',
+  done: 'circle-check',
 };
 
 const STATUS_TEXT_CLASS: Record<TaskStatus, string> = {
-  'todo': 'text-status-todo',
+  todo: 'text-status-todo',
   'in-progress': 'text-status-progress',
-  'done': 'text-status-done',
+  done: 'text-status-done',
 };
 
 @Component({
@@ -48,7 +49,11 @@ export class TaskColumn {
 
   protected readonly statusIcon = computed<IconName>(() => STATUS_ICON[this.column().status]);
   protected readonly statusTextClass = computed(() => STATUS_TEXT_CLASS[this.column().status]);
-  protected readonly headingId = `column-heading-${Math.random().toString(36).slice(2)}`;
+  protected readonly headingId = nextDomId('column-heading');
+  protected readonly countLabel = computed(() => {
+    const count = this.column().tasks.length;
+    return count === 1 ? '1 tarea' : `${count} tareas`;
+  });
 
   protected onDrop(event: CdkDragDrop<readonly Task[]>): void {
     if (event.previousIndex === event.currentIndex) return;

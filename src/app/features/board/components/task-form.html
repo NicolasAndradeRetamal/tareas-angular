@@ -1,7 +1,16 @@
-<app-dialog [open]="open()" size="form" (closed)="closed.emit()" (keydown.control.enter)="submit()">
+<app-dialog
+  [open]="open()"
+  size="form"
+  [labelledBy]="titleId"
+  (closed)="closed.emit()"
+  (keydown.control.enter)="submit()"
+  (keydown.meta.enter)="submit()"
+>
   <form class="flex flex-col" [formGroup]="form" (ngSubmit)="submit()">
     <header class="flex items-center justify-between border-b border-line px-6 py-4">
-      <h2 class="text-lg font-semibold text-ink">{{ isEdit ? 'Editar tarea' : 'Nueva tarea' }}</h2>
+      <h2 [id]="titleId" class="text-lg font-semibold text-ink">
+        {{ isEdit ? 'Editar tarea' : 'Nueva tarea' }}
+      </h2>
     </header>
 
     <div class="flex flex-col gap-4 px-6 py-6">
@@ -14,7 +23,9 @@
           formControlName="title"
           placeholder="Título de la tarea"
           [attr.aria-invalid]="form.controls.title.touched && form.controls.title.invalid"
-          [attr.aria-describedby]="form.controls.title.touched && form.controls.title.invalid ? 'task-title-error' : null"
+          [attr.aria-describedby]="
+            form.controls.title.touched && form.controls.title.invalid ? 'task-title-error' : null
+          "
         />
         <div class="field__meta">
           @if (form.controls.title.touched && form.controls.title.invalid) {
@@ -51,7 +62,9 @@
           @if (form.controls.description.value.length >= descriptionCounterThreshold) {
             <span
               class="field__counter"
-              [class.field__counter--danger]="form.controls.description.value.length >= descriptionMax"
+              [class.field__counter--danger]="
+                form.controls.description.value.length >= descriptionMax
+              "
               data-numeric
             >
               {{ form.controls.description.value.length }}/{{ descriptionMax }}
@@ -76,7 +89,11 @@
                 @for (bar of [0, 1, 2, 3]; track bar) {
                   <span
                     class="h-2.5 w-0.5 rounded-[2px]"
-                    [class]="bar <= priorityWeight[priority] ? 'bg-priority-' + priority : 'bg-line-strong/40'"
+                    [class]="
+                      bar <= priorityWeight[priority]
+                        ? 'bg-priority-' + priority
+                        : 'bg-line-strong/40'
+                    "
                   ></span>
                 }
               </span>
@@ -111,14 +128,17 @@
         <div class="flex items-center gap-2">
           <input id="task-due-date" type="date" class="field__control" formControlName="dueDate" />
           @if (form.controls.dueDate.value) {
-            <app-button variant="subtle" size="sm" type="button" (clicked)="clearDueDate()">Quitar fecha</app-button>
+            <app-button variant="subtle" size="sm" type="button" (clicked)="clearDueDate()"
+              >Quitar fecha</app-button
+            >
           }
         </div>
       </div>
 
       @if (isEdit && task(); as current) {
         <p class="text-2xs text-ink-subtle">
-          Creada el {{ formatMeta(current.createdAt) }} · Editada el {{ formatMeta(current.updatedAt) }}
+          Creada el {{ formatMeta(current.createdAt) }} · Editada el
+          {{ formatMeta(current.updatedAt) }}
         </p>
       }
     </div>
@@ -130,7 +150,9 @@
         <span></span>
       }
       <div class="flex items-center gap-2">
-        <app-button variant="secondary" type="button" (clicked)="closed.emit()">Cancelar</app-button>
+        <app-button variant="secondary" type="button" (clicked)="closed.emit()"
+          >Cancelar</app-button
+        >
         <app-button variant="primary" type="submit">
           {{ isEdit ? 'Guardar cambios' : 'Crear tarea' }}
           <kbd class="kbd" aria-hidden="true">Ctrl</kbd>

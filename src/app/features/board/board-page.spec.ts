@@ -83,6 +83,32 @@ describe('BoardPage', () => {
     expect(view.visibleTasks().every((task) => task.listId === list.id)).toBe(true);
   });
 
+  it('offers no drag handle while several lists share a column', async () => {
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.task-card__handle').length,
+    ).toBe(0);
+
+    fixture.componentRef.setInput('listId', board.lists()[0].id);
+    await fixture.whenStable();
+
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelectorAll('.task-card__handle').length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('keeps the whole board on a single tab stop', async () => {
+    const tabbable = (fixture.nativeElement as HTMLElement).querySelectorAll(
+      '.columns [tabindex="0"]',
+    );
+    const roving = view.columns().flatMap((column) => column.tasks)[0];
+
+    // Only the roving card and its own inner controls may be reachable with Tab.
+    expect(tabbable.length).toBeGreaterThan(0);
+    for (const element of tabbable) {
+      expect(element.closest('.task-card')?.id).toBe(`task-${roving.id}`);
+    }
+  });
+
   it('shows the empty board state once every task is gone', async () => {
     board.clearBoard();
     await fixture.whenStable();

@@ -22,7 +22,11 @@
 
   <label class="priority-filter" [class.priority-filter--active]="priorityFilter() !== null">
     <span class="sr-only">Filtrar por prioridad</span>
-    <select class="priority-filter__select" [value]="priorityFilter() ?? ''" (change)="onPriorityChange($event)">
+    <select
+      class="priority-filter__select"
+      [value]="priorityFilter() ?? ''"
+      (change)="onPriorityChange($event)"
+    >
       <option value="">Prioridad</option>
       @for (priority of priorities; track priority) {
         <option [value]="priority">{{ priority | priorityLabel }}</option>
@@ -34,6 +38,8 @@
 <div class="flex flex-wrap items-center gap-2 sm:justify-end">
   <p class="text-xs text-ink-muted" aria-live="polite" data-numeric>{{ summaryText() }}</p>
   @if (hasActiveFilters()) {
-    <app-button variant="subtle" size="sm" (clicked)="resetFilters.emit()">Limpiar filtros</app-button>
+    <app-button variant="subtle" size="sm" (clicked)="resetFilters.emit()"
+      >Limpiar filtros</app-button
+    >
   }
 </div>

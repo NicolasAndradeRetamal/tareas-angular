@@ -2,6 +2,9 @@
   #dialogEl
   class="dialog"
   [class.dialog--confirm]="size() === 'confirm'"
+  [attr.role]="role()"
+  [attr.aria-labelledby]="labelledBy()"
+  [attr.aria-describedby]="describedBy()"
   (close)="closed.emit()"
   (click)="onBackdropClick($event)"
 >

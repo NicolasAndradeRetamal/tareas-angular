@@ -1,0 +1,6 @@
+dist
+.angular
+pnpm-lock.yaml
+
+# Prose is hand-wrapped for readability; reflowing it makes the diffs unreadable.
+*.md

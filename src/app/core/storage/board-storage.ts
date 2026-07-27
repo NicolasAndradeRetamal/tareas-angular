@@ -11,7 +11,12 @@ import {
 } from '../models/task';
 import { ORDER_STEP } from '../util/order';
 import { migrate, UnsupportedSchemaVersionError } from './migrations';
-import { BOARD_BACKUP_KEY, BOARD_STORAGE_KEY, CURRENT_SCHEMA_VERSION, type PersistedBoard } from './schema';
+import {
+  BOARD_BACKUP_KEY,
+  BOARD_STORAGE_KEY,
+  CURRENT_SCHEMA_VERSION,
+  type PersistedBoard,
+} from './schema';
 import { STORAGE_DRIVER, type SaveResult } from './storage-driver';
 
 export type LoadResult =
@@ -124,8 +129,19 @@ interface SanitizedTask extends Omit<Task, 'order'> {
 
 function sanitizeTask(raw: unknown, listIds: ReadonlySet<string>): SanitizedTask | null {
   if (!isPlainObject(raw)) return null;
-  const { id, listId, title, description, priority, status, dueDate, order, createdAt, updatedAt, completedAt } =
-    raw;
+  const {
+    id,
+    listId,
+    title,
+    description,
+    priority,
+    status,
+    dueDate,
+    order,
+    createdAt,
+    updatedAt,
+    completedAt,
+  } = raw;
   if (typeof id !== 'string' || id.length === 0) return null;
   if (typeof listId !== 'string' || !listIds.has(listId)) return null;
   if (typeof title !== 'string' || title.trim().length === 0) return null;
@@ -138,7 +154,8 @@ function sanitizeTask(raw: unknown, listIds: ReadonlySet<string>): SanitizedTask
     id,
     listId,
     title: title.trim().slice(0, TASK_TITLE_MAX_LENGTH),
-    description: typeof description === 'string' ? description.slice(0, TASK_DESCRIPTION_MAX_LENGTH) : '',
+    description:
+      typeof description === 'string' ? description.slice(0, TASK_DESCRIPTION_MAX_LENGTH) : '',
     priority: isValidPriority(priority) ? priority : 'medium',
     status: safeStatus,
     dueDate: isIsoDate(dueDate) ? dueDate : null,
@@ -164,9 +181,13 @@ function resolveTaskOrder(tasks: readonly SanitizedTask[]): Task[] {
 
   const result: Task[] = [];
   for (const group of groups.values()) {
-    const withOrder = group.filter((task): task is SanitizedTask & { order: number } => task.order !== null);
+    const withOrder = group.filter(
+      (task): task is SanitizedTask & { order: number } => task.order !== null,
+    );
     const withoutOrder = group.filter((task) => task.order === null);
-    withOrder.sort((a, b) => (a.order === b.order ? a.createdAt.localeCompare(b.createdAt) : a.order - b.order));
+    withOrder.sort((a, b) =>
+      a.order === b.order ? a.createdAt.localeCompare(b.createdAt) : a.order - b.order,
+    );
     withoutOrder.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
     const ordered = [...withOrder, ...withoutOrder];

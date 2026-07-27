@@ -1,10 +1,20 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, untracked } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { LIST_COLORS, LIST_NAME_MAX_LENGTH } from '../../../core/models/list';
 import type { List, ListColor } from '../../../core/models/list';
 import { Button } from '../../../shared/ui/button';
 import { Dialog } from '../../../shared/ui/dialog';
+import { nextDomId } from '../../../shared/ui/dom-id';
 import { LIST_COLOR_BG_CLASS, LIST_COLOR_LABEL } from '../../../shared/ui/list-color';
+import { nonBlank } from '../../../core/util/validators';
 
 export type ListFormMode = 'create' | 'edit';
 
@@ -34,9 +44,10 @@ export class ListForm {
   protected readonly colorClass = LIST_COLOR_BG_CLASS;
   protected readonly colorLabel = LIST_COLOR_LABEL;
   protected readonly nameMax = LIST_NAME_MAX_LENGTH;
+  protected readonly titleId = nextDomId('list-form-title');
 
   protected readonly form = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.maxLength(LIST_NAME_MAX_LENGTH)]],
+    name: ['', [nonBlank, Validators.maxLength(LIST_NAME_MAX_LENGTH)]],
     color: ['slate' as ListColor],
   });
 

@@ -50,7 +50,9 @@ describe('createSeedBoard', () => {
 
   it('respects the status/completedAt invariant', () => {
     const board = createSeedBoard(now);
-    expect(board.tasks.every((task) => (task.status === 'done') === (task.completedAt !== null))).toBe(true);
+    expect(
+      board.tasks.every((task) => (task.status === 'done') === (task.completedAt !== null)),
+    ).toBe(true);
   });
 
   it('assigns a unique, sortable order within each (listId, status) column', () => {
@@ -71,8 +73,12 @@ describe('createSeedBoard', () => {
     const boardA = createSeedBoard(new Date('2026-07-27T10:00:00.000Z'));
     const boardB = createSeedBoard(new Date('2026-08-15T10:00:00.000Z'));
 
-    const overdueA = boardA.tasks.find((task) => isOverdue(task, todayIso(new Date('2026-07-27T10:00:00.000Z'))));
-    const overdueB = boardB.tasks.find((task) => isOverdue(task, todayIso(new Date('2026-08-15T10:00:00.000Z'))));
+    const overdueA = boardA.tasks.find((task) =>
+      isOverdue(task, todayIso(new Date('2026-07-27T10:00:00.000Z'))),
+    );
+    const overdueB = boardB.tasks.find((task) =>
+      isOverdue(task, todayIso(new Date('2026-08-15T10:00:00.000Z'))),
+    );
 
     expect(overdueA?.dueDate).not.toBe(overdueB?.dueDate);
   });

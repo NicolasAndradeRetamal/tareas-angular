@@ -1,6 +1,15 @@
-import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  effect,
+  input,
+  output,
+  viewChild,
+} from '@angular/core';
 
 export type DialogSize = 'form' | 'confirm';
+export type DialogRole = 'dialog' | 'alertdialog';
 
 /** Thin wrapper over the native <dialog>: free focus trap, Esc-to-close and focus return. */
 @Component({
@@ -12,6 +21,10 @@ export type DialogSize = 'form' | 'confirm';
 export class Dialog {
   readonly open = input.required<boolean>();
   readonly size = input<DialogSize>('form');
+  readonly role = input<DialogRole>('dialog');
+  /** Id of the heading that names the dialog; screen readers read it off the <dialog> itself. */
+  readonly labelledBy = input.required<string>();
+  readonly describedBy = input<string | null>(null);
   readonly closed = output<void>();
 
   private readonly dialogRef = viewChild.required<ElementRef<HTMLDialogElement>>('dialogEl');

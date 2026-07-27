@@ -50,7 +50,10 @@ export class BoardViewStore {
   readonly priorityFilter = this._priorityFilter.asReadonly();
   readonly activeListId = this._activeListId.asReadonly();
   readonly hasActiveFilters = computed(
-    () => this._query().trim().length > 0 || this._statusFilter() !== 'all' || this._priorityFilter() !== null,
+    () =>
+      this._query().trim().length > 0 ||
+      this._statusFilter() !== 'all' ||
+      this._priorityFilter() !== null,
   );
 
   setQuery(value: string): void {
@@ -92,7 +95,8 @@ export class BoardViewStore {
       if (listId !== null && task.listId !== listId) return false;
       if (priorityFilter !== null && task.priority !== priorityFilter) return false;
       if (!matchesStatusFilter(task, statusFilter, today)) return false;
-      if (query.length > 0 && !normalize(`${task.title} ${task.description}`).includes(query)) return false;
+      if (query.length > 0 && !normalize(`${task.title} ${task.description}`).includes(query))
+        return false;
       return true;
     });
   });
@@ -110,7 +114,9 @@ export class BoardViewStore {
     const listId = this._activeListId();
     const today = this.today;
     const scoped =
-      listId === null ? this.board.tasks() : this.board.tasks().filter((task) => task.listId === listId);
+      listId === null
+        ? this.board.tasks()
+        : this.board.tasks().filter((task) => task.listId === listId);
 
     return {
       total: scoped.length,

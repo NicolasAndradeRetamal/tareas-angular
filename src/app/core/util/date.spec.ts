@@ -50,7 +50,9 @@ describe('isOverdue', () => {
   });
 
   it('is false for a completed task even if overdue', () => {
-    expect(isOverdue(makeTask({ dueDate: '2026-07-26', status: 'done' }), '2026-07-27')).toBe(false);
+    expect(isOverdue(makeTask({ dueDate: '2026-07-26', status: 'done' }), '2026-07-27')).toBe(
+      false,
+    );
   });
 });
 

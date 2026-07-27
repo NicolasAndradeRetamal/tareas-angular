@@ -5,8 +5,7 @@ import { MemoryStorageDriver } from './memory-storage-driver';
 export type PersistenceError = 'quota' | 'unavailable' | 'unknown';
 
 export type SaveResult =
-  | { readonly kind: 'saved' }
-  | { readonly kind: 'failed'; readonly reason: PersistenceError };
+  { readonly kind: 'saved' } | { readonly kind: 'failed'; readonly reason: PersistenceError };
 
 export interface StorageDriver {
   read(key: string): string | null;

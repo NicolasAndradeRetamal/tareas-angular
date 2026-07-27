@@ -30,9 +30,9 @@ export const PRIORITY_LABELS: Record<TaskPriority, string> = {
 };
 
 export const STATUS_LABELS: Record<TaskStatus, string> = {
-  'todo': 'Por hacer',
+  todo: 'Por hacer',
   'in-progress': 'En progreso',
-  'done': 'Completada',
+  done: 'Completada',
 };
 
 export const TASK_TITLE_MAX_LENGTH = 120;

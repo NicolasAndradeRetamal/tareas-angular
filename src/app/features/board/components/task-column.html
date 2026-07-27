@@ -3,10 +3,14 @@
     <app-icon [name]="statusIcon()" [size]="20" />
   </span>
   <h2 [id]="headingId" class="task-column__title tracking-caps">{{ column().label }}</h2>
-  <span class="task-column__count" [attr.aria-label]="column().tasks.length + ' tareas'" data-numeric>
+  <span class="task-column__count" [attr.aria-label]="countLabel()" data-numeric>
     {{ column().tasks.length }}
   </span>
-  <app-icon-button [label]="'Añadir tarea a ' + column().label" size="sm" (clicked)="addTask.emit()">
+  <app-icon-button
+    [label]="'Añadir tarea a ' + column().label"
+    size="sm"
+    (clicked)="addTask.emit()"
+  >
     <app-icon name="plus" [size]="20" />
   </app-icon-button>
 </header>
@@ -31,6 +35,7 @@
         [showListMeta]="showListMeta()"
         [roving]="task.id === focusedTaskId()"
         [highlighted]="task.id === highlightedTaskId()"
+        [dragEnabled]="dragEnabled()"
         (toggleDone)="toggleDone.emit(task.id)"
         (edit)="editTask.emit(task.id)"
         (duplicate)="duplicateTask.emit(task.id)"

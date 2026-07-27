@@ -9,7 +9,10 @@
       type="button"
       role="checkbox"
       [attr.aria-checked]="task().status === 'done'"
-      [attr.aria-label]="(task().status === 'done' ? 'Reabrir: ' : 'Marcar como completada: ') + task().title"
+      [attr.aria-label]="
+        (task().status === 'done' ? 'Reabrir: ' : 'Marcar como completada: ') + task().title
+      "
+      [attr.tabindex]="roving() ? 0 : -1"
       class="task-checkbox mt-0.5 shrink-0"
       [class.task-checkbox--checked]="task().status === 'done'"
       (click)="toggleDone.emit()"
@@ -28,15 +31,18 @@
       {{ task().title }}
     </h3>
 
-    <button
-      type="button"
-      cdkDragHandle
-      class="task-card__handle shrink-0"
-      [attr.aria-label]="'Reordenar la tarea ' + task().title"
-      aria-describedby="task-card-drag-hint"
-    >
-      <app-icon name="grip" [size]="20" />
-    </button>
+    @if (dragEnabled()) {
+      <button
+        type="button"
+        cdkDragHandle
+        class="task-card__handle shrink-0"
+        [attr.aria-label]="'Reordenar la tarea ' + task().title"
+        [attr.aria-describedby]="hintId"
+        [attr.tabindex]="roving() ? 0 : -1"
+      >
+        <app-icon name="grip" [size]="20" />
+      </button>
+    }
   </div>
 
   @if (task().description) {
@@ -44,9 +50,16 @@
   }
 
   <div class="flex h-5 flex-wrap items-center gap-2 text-xs">
-    <div class="flex items-end gap-0.5" role="img" [attr.aria-label]="'Prioridad: ' + (task().priority | priorityLabel)">
+    <div
+      class="flex items-end gap-0.5"
+      role="img"
+      [attr.aria-label]="'Prioridad: ' + (task().priority | priorityLabel)"
+    >
       @for (active of priorityBars(); track $index) {
-        <span class="h-2.5 w-0.5 rounded-[2px]" [class]="active ? priorityBarClass() : 'bg-line-strong/40'"></span>
+        <span
+          class="h-2.5 w-0.5 rounded-[2px]"
+          [class]="active ? priorityBarClass() : 'bg-line-strong/40'"
+        ></span>
       }
     </div>
 
@@ -71,6 +84,7 @@
         [attr.aria-label]="'Abrir el menú de la tarea ' + task().title"
         aria-haspopup="menu"
         [attr.aria-expanded]="menuOpen()"
+        [attr.tabindex]="roving() ? 0 : -1"
         (click)="toggleMenu()"
       >
         <app-icon name="more" [size]="20" />
@@ -78,11 +92,21 @@
 
       @if (menuOpen()) {
         <div class="task-card__menu" role="menu">
-          <button type="button" role="menuitem" class="task-card__menu-item" (click)="runAction(() => edit.emit())">
+          <button
+            type="button"
+            role="menuitem"
+            class="task-card__menu-item"
+            (click)="runAction(() => edit.emit())"
+          >
             <app-icon name="pencil" [size]="16" />
             Editar
           </button>
-          <button type="button" role="menuitem" class="task-card__menu-item" (click)="runAction(() => duplicate.emit())">
+          <button
+            type="button"
+            role="menuitem"
+            class="task-card__menu-item"
+            (click)="runAction(() => duplicate.emit())"
+          >
             <app-icon name="copy" [size]="16" />
             Duplicar
           </button>
@@ -114,4 +138,4 @@
   </div>
 </div>
 
-<span id="task-card-drag-hint" class="sr-only">Usa el menú de la tarea para moverla de columna.</span>
+<span [id]="hintId" class="sr-only">Usa el menú de la tarea para moverla de columna.</span>

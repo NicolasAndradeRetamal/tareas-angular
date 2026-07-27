@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, effect, inject, input, output, untracked } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  input,
+  output,
+  untracked,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { CreateTaskInput, UpdateTaskInput } from '../../../core/models/board-state';
 import type { List, ListId } from '../../../core/models/list';
@@ -11,9 +19,11 @@ import {
   TASK_TITLE_MAX_LENGTH,
 } from '../../../core/models/task';
 import type { Task, TaskId, TaskPriority, TaskStatus } from '../../../core/models/task';
+import { nonBlank } from '../../../core/util/validators';
 import { PriorityLabelPipe } from '../../../shared/pipes/priority-label-pipe';
 import { Button } from '../../../shared/ui/button';
 import { Dialog } from '../../../shared/ui/dialog';
+import { nextDomId } from '../../../shared/ui/dom-id';
 import { Icon } from '../../../shared/ui/icon';
 
 export type TaskFormMode = 'create' | 'edit';
@@ -51,9 +61,10 @@ export class TaskForm {
   protected readonly titleCounterThreshold = TITLE_COUNTER_THRESHOLD;
   protected readonly descriptionCounterThreshold = DESCRIPTION_COUNTER_THRESHOLD;
   protected readonly priorityWeight = PRIORITY_WEIGHT;
+  protected readonly titleId = nextDomId('task-form-title');
 
   protected readonly form = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.maxLength(TASK_TITLE_MAX_LENGTH)]],
+    title: ['', [nonBlank, Validators.maxLength(TASK_TITLE_MAX_LENGTH)]],
     description: ['', [Validators.maxLength(TASK_DESCRIPTION_MAX_LENGTH)]],
     priority: ['medium' as TaskPriority],
     status: ['todo' as TaskStatus],
@@ -124,7 +135,11 @@ export class TaskForm {
   }
 
   protected formatMeta(iso: string): string {
-    return new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(iso));
+    return new Intl.DateTimeFormat('es', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(iso));
   }
 
   private populateForm(): void {

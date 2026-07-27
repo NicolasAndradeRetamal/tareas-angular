@@ -12,7 +12,7 @@ export type MutationKind =
   | 'clear-board';
 
 export const MUTATION_LABELS: Record<MutationKind, string> = {
-  'init': 'Estado inicial',
+  init: 'Estado inicial',
   'create-task': 'Crear tarea',
   'update-task': 'Editar tarea',
   'delete-task': 'Eliminar tarea',

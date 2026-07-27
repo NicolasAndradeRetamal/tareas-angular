@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'subtle' | 'danger' | 'danger-subtle' | 'link';
+export type ButtonVariant =
+  'primary' | 'secondary' | 'subtle' | 'danger' | 'danger-subtle' | 'link';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 /** Shared button: covers every variant and size from the design system in one place. */

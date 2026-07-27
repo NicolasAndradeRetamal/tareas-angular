@@ -51,6 +51,9 @@ const THEME_OPTIONS: readonly { value: ThemePreference; label: string; icon: Ico
   { value: 'system', label: 'Seguir al sistema', icon: 'monitor' },
 ];
 
+/** Matches the drop-flash animation in task-card.css. */
+const HIGHLIGHT_MS = 1200;
+
 const PERSISTENCE_MESSAGES = {
   quota:
     'No se pudieron guardar los últimos cambios: el almacenamiento del navegador está lleno. Tu trabajo sigue en pantalla, pero se perderá al cerrar la pestaña.',
@@ -112,6 +115,13 @@ export class BoardPage {
   protected readonly editingListId = signal<ListId | null>(null);
 
   private readonly explicitFocusId = signal<TaskId | null>(null);
+  protected readonly highlightedTaskId = signal<TaskId | null>(null);
+
+  /**
+   * `order` only ranks tasks inside their own list, so a column mixing lists has no
+   * position a drop could translate into: reordering needs a single list in view.
+   */
+  protected readonly dragEnabled = computed(() => this.view.activeListId() !== null);
 
   // --- Derived ---
   protected readonly lists = this.board.lists;
@@ -140,22 +150,30 @@ export class BoardPage {
     () => this.board.tasks().filter((task) => task.status !== 'done').length,
   );
 
-  protected readonly contextTitle = computed(() => this.view.activeList()?.name ?? 'Todas las tareas');
+  protected readonly contextTitle = computed(
+    () => this.view.activeList()?.name ?? 'Todas las tareas',
+  );
   protected readonly contextColorClass = computed(() => {
     const list = this.view.activeList();
     return list ? LIST_COLOR_BG_CLASS[list.color] : null;
   });
 
-  protected readonly themeIcon = computed<IconName>(() => (this.theme.resolved() === 'dark' ? 'moon' : 'sun'));
+  protected readonly themeIcon = computed<IconName>(() =>
+    this.theme.resolved() === 'dark' ? 'moon' : 'sun',
+  );
 
   /** The sample board is still untouched: no mutation has happened yet. */
   protected readonly showSeedNotice = computed(
     () => this.board.isSeeded() && !this.seedNoticeDismissed() && !this.view.isEmpty(),
   );
 
-  protected readonly showLoadIssue = computed(
-    () => this.board.loadIssue() !== null && !this.loadIssueDismissed(),
-  );
+  protected readonly loadIssueMessage = computed(() => {
+    const issue = this.board.loadIssue();
+    if (issue === null || this.loadIssueDismissed()) return null;
+    return issue === 'corrupt-backed-up'
+      ? 'No pudimos leer el tablero guardado y empezamos uno nuevo. Guardamos una copia del contenido anterior por si la necesitas.'
+      : 'No pudimos leer el tablero guardado y empezamos uno nuevo. Tampoco pudimos conservar una copia del contenido anterior.';
+  });
 
   protected readonly activeListIsEmpty = computed(
     () => this.view.activeList() !== null && this.view.counts().total === 0,
@@ -190,12 +208,17 @@ export class BoardPage {
   });
 
   protected readonly anyDialogOpen = computed(
-    () => this.taskFormOpen() || this.listFormOpen() || this.shortcutsOpen() || this.confirmRequest() !== null,
+    () =>
+      this.taskFormOpen() ||
+      this.listFormOpen() ||
+      this.shortcutsOpen() ||
+      this.confirmRequest() !== null,
   );
 
+  /** Always present so the dialog can stay mounted and close properly, returning focus. */
   protected readonly confirmCopy = computed(() => {
     const request = this.confirmRequest();
-    if (request === null) return null;
+    if (request === null) return { title: '', message: '', confirmLabel: '' };
     if (request.kind === 'clear-board') {
       return {
         title: 'Vaciar el tablero',
@@ -376,11 +399,21 @@ export class BoardPage {
     const visible = this.view.columns().find((column) => column.status === status)?.tasks ?? [];
     const siblings = this.board
       .tasks()
-      .filter((other) => other.id !== task.id && other.listId === task.listId && other.status === status)
+      .filter(
+        (other) => other.id !== task.id && other.listId === task.listId && other.status === status,
+      )
       .sort(byOrder);
 
     const targetIndex = resolveDropIndex(task, siblings, visible, event.targetIndex);
     this.board.moveTask(event.id, { listId: task.listId, status, targetIndex });
+    this.flashTask(event.id);
+  }
+
+  private flashTask(id: TaskId): void {
+    this.highlightedTaskId.set(id);
+    setTimeout(() => {
+      if (this.highlightedTaskId() === id) this.highlightedTaskId.set(null);
+    }, HIGHLIGHT_MS);
   }
 
   // --- Board keyboard navigation ---
@@ -457,9 +490,16 @@ export class BoardPage {
     document.getElementById(`task-${id}`)?.focus();
   }
 
-  private focusAdjacentColumn(position: { columnIndex: number; taskIndex: number }, step: number): void {
+  private focusAdjacentColumn(
+    position: { columnIndex: number; taskIndex: number },
+    step: number,
+  ): void {
     const columns = this.view.columns();
-    for (let index = position.columnIndex + step; index >= 0 && index < columns.length; index += step) {
+    for (
+      let index = position.columnIndex + step;
+      index >= 0 && index < columns.length;
+      index += step
+    ) {
       if (columns[index].tasks.length > 0) {
         this.focusTaskAt(index, position.taskIndex);
         return;
@@ -515,11 +555,9 @@ export class BoardPage {
 
   @HostListener('document:click', ['$event'])
   protected onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement | null;
-    if (target === null || target.closest('[data-menu]') === null) {
-      this.themeMenuOpen.set(false);
-      this.overflowMenuOpen.set(false);
-    }
+    const menu = (event.target as HTMLElement | null)?.closest('[data-menu]') ?? null;
+    if (menu?.getAttribute('data-menu') !== 'theme') this.themeMenuOpen.set(false);
+    if (menu?.getAttribute('data-menu') !== 'overflow') this.overflowMenuOpen.set(false);
   }
 
   protected setThemePreference(preference: ThemePreference): void {

@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { MIN_ORDER_DELTA, ORDER_STEP, byOrder, needsRebalance, rankBetween, rebalance } from './order';
+import {
+  MIN_ORDER_DELTA,
+  ORDER_STEP,
+  byOrder,
+  needsRebalance,
+  rankBetween,
+  rebalance,
+} from './order';
 
 describe('rankBetween', () => {
   it('returns 0 for an empty column', () => {

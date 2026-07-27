@@ -84,12 +84,18 @@
   background: var(--surface);
   border-right: 1px solid var(--line);
   transform: translateX(-100%);
-  transition: transform var(--duration-base) var(--ease-standard);
+  /* Hidden, not just off-screen: an open-drawer-only tab stop must leave the tab order. */
+  visibility: hidden;
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    visibility 0s linear var(--duration-base);
   overflow-y: auto;
 }
 
 .sidebar--open {
   transform: translateX(0);
+  visibility: visible;
+  transition-delay: 0s;
 }
 
 .sidebar-scrim {
