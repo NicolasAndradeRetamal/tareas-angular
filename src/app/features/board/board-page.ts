@@ -238,16 +238,16 @@ export class BoardPage {
     if (request.kind === 'clear-board') {
       return {
         title: 'Vaciar el tablero',
-        message:
-          'Se eliminarán todas las tareas y quedará una sola lista vacía. Puedes deshacerlo mientras no cierres la pestaña.',
+        message: `Se eliminarán ${countLabel(this.board.tasks().length)} y quedará una sola lista vacía. Puedes deshacerlo mientras no cierres la pestaña.`,
         confirmLabel: 'Vaciar el tablero',
       };
     }
     if (request.kind === 'delete-list') {
       const list = this.listIndex().get(request.id);
+      const affected = this.board.tasks().filter((task) => task.listId === request.id).length;
       return {
         title: 'Eliminar la lista',
-        message: `Se eliminará «${list?.name ?? ''}» y todas sus tareas.`,
+        message: `Se eliminará «${list?.name ?? ''}» con ${countLabel(affected)}.`,
         confirmLabel: 'Eliminar la lista',
       };
     }
@@ -635,6 +635,10 @@ export class BoardPage {
     this.theme.setPreference(preference);
     this.themeMenuOpen.set(false);
   }
+}
+
+function countLabel(count: number): string {
+  return count === 1 ? '1 tarea' : `${count} tareas`;
 }
 
 function isEditableTarget(target: EventTarget | null): boolean {

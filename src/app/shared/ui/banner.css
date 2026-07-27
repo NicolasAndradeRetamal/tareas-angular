@@ -4,7 +4,8 @@
 
 .banner {
   display: flex;
-  align-items: center;
+  /* Top-aligned: centring drifts the icon to mid-paragraph once the text wraps. */
+  align-items: flex-start;
   gap: 0.625rem;
   padding: 0.625rem 0.75rem;
   border-radius: var(--radius-md);

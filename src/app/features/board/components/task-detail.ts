@@ -50,7 +50,7 @@ export class TaskDetail {
 
   protected readonly dueLabel = computed(() => {
     const task = this.task();
-    return task ? formatDueLabel(task.dueDate, this.today) : '';
+    return task ? formatDueLabel(task.dueDate, this.today, task.status === 'done') : '';
   });
 
   protected readonly overdue = computed(() => {
