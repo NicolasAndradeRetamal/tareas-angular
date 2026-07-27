@@ -532,7 +532,7 @@ en las opciones de tema.
 | `↑` `↓` | Tarjeta anterior / siguiente dentro de la columna |
 | `←` `→` | Columna anterior / siguiente, conservando la posición vertical aproximada |
 | `Inicio` `Fin` | Primera / última tarjeta de la columna |
-| `Enter` | Abrir la tarea para editarla |
+| `Enter` | Abrir el detalle de la tarea |
 | `Espacio` | Marcar o desmarcar como completada |
 | `Supr` | Eliminar la tarea (abre confirmación) |
 | `Esc` | Salir del tablero hacia la barra de herramientas |
@@ -557,7 +557,7 @@ aparecen hasta que se construyen.
 | `T` | Cambiar entre claro y oscuro | Global | 1 |
 | `Esc` | Cerrar diálogo, menú o cajón; con el buscador enfocado, vaciarlo | Global | 1 |
 | `↑` `↓` `←` `→` | Navegar entre tarjetas y columnas | Tablero | 1 |
-| `Enter` | Editar la tarea enfocada | Tablero | 1 |
+| `Enter` | Abrir el detalle de la tarea enfocada | Tablero | 1 |
 | `Espacio` | Completar o reabrir la tarea enfocada | Tablero | 1 |
 | `Supr` | Eliminar la tarea enfocada | Tablero | 1 |
 | `Ctrl`+`Enter` | Guardar el formulario | Diálogo | 1 |
@@ -583,14 +583,20 @@ Reglas de comportamiento:
 - Una combinación se pinta como **teclas separadas con 2 px de espacio, sin
   signo `+`**: `Ctrl` `K`.
 - Dónde aparecen:
+  - En la **hoja de atajos** (`?`), agrupados por ámbito. Es el lugar donde se
+    aprenden.
+  - En los **títulos emergentes** de los controles: «Nueva tarea (N)». Es el
+    lugar donde se recuerdan, justo sobre el control al que pertenecen.
   - En las **filas de menú**, alineados a la derecha en `ink-subtle`.
-  - En el **buscador vacío**, la tecla `/` al final del campo; desaparece al
-    escribir o al enfocar.
-  - En los **títulos emergentes** de los botones de icono: «Nueva tarea (N)».
-  - En la **hoja de atajos** (`?`), agrupados por ámbito.
+- **Nunca estampados dentro de un botón.** Una tecla incrustada en la etiqueta
+  compite con ella por la atención, ensancha el control y no aporta nada a quien
+  usa el ratón —que es quien está leyendo el botón—. Quien usa el teclado no
+  necesita ver la tecla en pantalla: la busca una vez en la hoja de atajos y ya
+  no vuelve a mirar. El título emergente cubre el caso intermedio sin ocupar
+  espacio permanente.
 - En dispositivos táctiles sin teclado (`pointer: coarse` y sin `hover`) las
-  teclas del buscador y de los títulos emergentes no se pintan; la hoja de
-  atajos sigue accesible desde el menú.
+  teclas de los títulos emergentes no se pintan; la hoja de atajos sigue
+  accesible desde el menú.
 
 ---
 
@@ -1017,34 +1023,27 @@ valor inicial.
 
 ### 10.12 Aviso breve (toast)
 
-Pila abajo a la derecha en escritorio (24 px de margen), y abajo a ancho completo
-en móvil (16 px de margen, respetando el área segura). Máximo **tres** a la vez;
-el cuarto desplaza al más antiguo.
+Confirma una acción que **ya ocurrió** y ofrece el camino de vuelta. No pide
+decisiones ni informa de errores: eso es del diálogo y del banner (§10.13).
 
-**Anatomía**: `[icono 20px] [mensaje] [acción opcional] [cerrar 20px]`, panel
-`overlay` con borde de 1 px del color de la variante, radio `md`, `shadow-md`,
-ancho máximo 380 px, relleno 12 px.
+Centrado abajo, a 24 px del borde inferior, por encima de todo el contenido.
+Uno solo a la vez: si llega otro, sustituye al anterior y reinicia el reloj.
+Apilar avisos de una acción que se repite —completar tres tareas seguidas— llena
+la pantalla de ruido y entierra el «Deshacer» que importa, que es el último.
 
-| Variante | Icono | Color de icono y borde | Fondo |
-|---|---|---|---|
-| Éxito | Verificación en círculo | `success` | `overlay` con velo `success-soft` |
-| Error | Triángulo de aviso | `danger` | `overlay` con velo `danger-soft` |
-| Información | Círculo con «i» | `info` | `overlay` con velo `info-soft` |
+**Anatomía**: `[mensaje] · [acción]`, sobre superficie `tooltip` con tinta
+`on-tooltip`, radio `md`, `shadow-lg`, relleno de 10 px por 14 px, ancho máximo
+igual al viewport menos 32 px. Sin icono y sin botón de cerrar: el aviso se va
+solo y el único control que ofrece es el que deshace.
 
-- **El botón de cerrar hereda el color de la variante** (`danger` en un error,
-  `success` en un éxito), nunca el violeta de marca, y mide 20 px de icono en
-  44×44 de área táctil, alineado arriba a la derecha. Jamás es más grande que el
-  icono de la variante.
-- El texto va siempre en `ink`: es lo que hay que leer.
-- **Auto-cierre**: 5 s en éxito e información, 8 s en error. Una barra de
-  progreso de 2 px del color de la variante recorre el borde inferior.
-- **Se pausa** al pasar el puntero, al enfocar cualquier elemento del aviso y
-  mientras la pestaña está oculta; al salir, reanuda desde donde estaba.
-- La `×` está siempre disponible, aunque haya auto-cierre.
-- Región `role="status"` (`polite`) para éxito e información y `role="alert"`
-  (`assertive`) para error.
-- En la fase 1 **ningún aviso lleva acción** «Deshacer»: la función no existe
-  todavía. La ranura de acción está especificada para cuando exista (§14.2).
+- La acción va subrayada y en peso 600, heredando la tinta del aviso; es el
+  único elemento interactivo, así que no compite con nada.
+- **Auto-cierre a los 6 s**, tiempo suficiente para leer y alcanzar «Deshacer».
+- La superficie oscura (`tooltip`) es deliberada: hace que el aviso se lea como
+  una capa del sistema y no como una tarjeta más del tablero.
+- Región `role="status"` con `aria-live="polite"`: se anuncia sin interrumpir.
+- **No se usa para errores.** Un fallo que el usuario debe conocer permanece en
+  un banner hasta que deja de ser cierto.
 
 ### 10.13 Banner persistente
 
@@ -1137,6 +1136,42 @@ Rejilla, de móvil a escritorio:
 Se descarta el desplazamiento horizontal del tablero: con tres columnas fijas
 —los tres estados del modelo— siempre caben, y una barra horizontal en una
 aplicación de teclado es una molestia.
+
+### 11.0.1 Modelo de estado: qué significa cada control
+
+Una tarea tiene **un solo estado** (`Por hacer`, `En progreso`, `Completada`) y
+la columna en la que está **es** ese estado. No hay un «completada» paralelo a
+la columna: marcar una tarea como completada es moverla a `Completada`.
+
+De ahí se derivan las tres formas de cambiarlo, que hacen cosas distintas a
+propósito:
+
+| Control | Qué hace | Por qué existe |
+|---|---|---|
+| **Arrastrar** | Mueve la tarjeta a donde se suelte | Es el gesto directo: la posición final es la que se ve |
+| **«Mover a …»** del menú | Lleva la tarea al estado elegido | El camino explícito y accesible sin ratón, y el único que va a `En progreso` en un paso |
+| **Casilla de la tarjeta** | Atajo a `Completada` desde cualquier columna | Completar es la acción más frecuente con diferencia; obligar a arrastrar hasta la tercera columna para algo tan común sería un castigo |
+
+La casilla es un **atajo**, no un interruptor de una propiedad independiente, y
+por eso mueve la tarjeta de columna. Ese salto sorprende si ocurre en silencio:
+la tarjeta desaparece de donde estaba mirando el usuario. Por eso la casilla
+**siempre va acompañada de un aviso breve** (§10.12):
+
+> Tarea completada · **Deshacer**
+
+Reglas del aviso:
+
+- Aparece al completar **y** al reabrir, con el texto correspondiente («Tarea
+  completada» / «Tarea reabierta»): el movimiento sorprende en ambos sentidos.
+- «Deshacer» revierte la acción entera, incluida la posición que tenía la tarea
+  en su columna de origen.
+- Arrastrar **no** muestra aviso: ahí el usuario ve el resultado en el mismo
+  gesto, y anunciar lo que acaba de hacer con la mano sobra. El destello de la
+  tarjeta al soltar (§8.2) ya confirma el resultado.
+- «Mover a …» tampoco lo muestra: la orden nombra el destino antes de ejecutarse.
+
+La casilla marcada usa el verde `success` con la marca de verificación, y el
+título pasa a tachado en `ink-subtle`; el color nunca va solo (§3).
 
 ### 11.1 Tablero (`/tablero` y `/tablero/:listId`)
 

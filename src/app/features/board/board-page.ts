@@ -37,8 +37,10 @@ import type { ListSummary } from './components/list-sidebar';
 import { ShortcutsDialog } from './components/shortcuts-dialog';
 import { resolveDropIndex } from './drop-target';
 import { TaskColumn } from './components/task-column';
+import { TaskDetail } from './components/task-detail';
 import { TaskForm } from './components/task-form';
 import type { TaskFormMode } from './components/task-form';
+import { Toast } from '../../shared/ui/toast';
 
 type ConfirmRequest =
   | { readonly kind: 'delete-task'; readonly id: TaskId }
@@ -53,6 +55,9 @@ const THEME_OPTIONS: readonly { value: ThemePreference; label: string; icon: Ico
 
 /** Matches the drop-flash animation in task-card.css. */
 const HIGHLIGHT_MS = 1200;
+
+/** Long enough to read the notice and reach for «Deshacer». */
+const TOAST_MS = 6000;
 
 const PERSISTENCE_MESSAGES = {
   quota:
@@ -70,11 +75,13 @@ const PERSISTENCE_MESSAGES = {
     BoardToolbar,
     TaskColumn,
     TaskForm,
+    TaskDetail,
     ListForm,
     ShortcutsDialog,
     ConfirmDialog,
     EmptyState,
     Banner,
+    Toast,
     Button,
     IconButton,
     Icon,
@@ -114,14 +121,12 @@ export class BoardPage {
   protected readonly listFormMode = signal<ListFormMode>('create');
   protected readonly editingListId = signal<ListId | null>(null);
 
+  protected readonly detailTaskId = signal<TaskId | null>(null);
+  protected readonly toastMessage = signal<string | null>(null);
+  private toastTimer: ReturnType<typeof setTimeout> | null = null;
+
   private readonly explicitFocusId = signal<TaskId | null>(null);
   protected readonly highlightedTaskId = signal<TaskId | null>(null);
-
-  /**
-   * `order` only ranks tasks inside their own list, so a column mixing lists has no
-   * position a drop could translate into: reordering needs a single list in view.
-   */
-  protected readonly dragEnabled = computed(() => this.view.activeListId() !== null);
 
   // --- Derived ---
   protected readonly lists = this.board.lists;
@@ -131,6 +136,16 @@ export class BoardPage {
   protected readonly editingTask = computed<Task | null>(() => {
     const id = this.editingTaskId();
     return id === null ? null : (this.board.taskIndex().get(id) ?? null);
+  });
+
+  protected readonly detailTask = computed<Task | null>(() => {
+    const id = this.detailTaskId();
+    return id === null ? null : (this.board.taskIndex().get(id) ?? null);
+  });
+
+  protected readonly detailList = computed<List | null>(() => {
+    const task = this.detailTask();
+    return task === null ? null : (this.listIndex().get(task.listId) ?? null);
   });
 
   protected readonly editingList = computed<List | null>(() => {
@@ -212,6 +227,7 @@ export class BoardPage {
       this.taskFormOpen() ||
       this.listFormOpen() ||
       this.shortcutsOpen() ||
+      this.detailTaskId() !== null ||
       this.confirmRequest() !== null,
   );
 
@@ -311,8 +327,65 @@ export class BoardPage {
     this.board.updateTask(payload.id, payload.changes);
   }
 
+  /**
+   * The column shows the state; the checkbox is the shortcut that jumps straight to
+   * "Completada" from anywhere, so it has to say what it did and offer the way back.
+   */
   protected toggleDone(id: TaskId): void {
+    const before = this.board.taskIndex().get(id);
+    if (!before) return;
+
     this.board.toggleTaskDone(id);
+    this.showToast(before.status === 'done' ? 'Tarea reabierta' : 'Tarea completada');
+  }
+
+  protected undoLastAction(): void {
+    this.board.undo();
+    this.dismissToast();
+  }
+
+  private showToast(message: string): void {
+    if (this.toastTimer !== null) clearTimeout(this.toastTimer);
+    this.toastMessage.set(message);
+    this.toastTimer = setTimeout(() => this.toastMessage.set(null), TOAST_MS);
+  }
+
+  private dismissToast(): void {
+    if (this.toastTimer !== null) clearTimeout(this.toastTimer);
+    this.toastMessage.set(null);
+  }
+
+  // --- Task detail ---
+
+  protected openDetail(id: TaskId): void {
+    this.detailTaskId.set(id);
+  }
+
+  protected closeDetail(): void {
+    this.detailTaskId.set(null);
+  }
+
+  protected editFromDetail(): void {
+    const id = this.detailTaskId();
+    this.closeDetail();
+    if (id !== null) this.openEditTask(id);
+  }
+
+  protected duplicateFromDetail(): void {
+    const id = this.detailTaskId();
+    this.closeDetail();
+    if (id !== null) this.duplicateTask(id);
+  }
+
+  protected removeFromDetail(): void {
+    const id = this.detailTaskId();
+    this.closeDetail();
+    if (id !== null) this.requestDeleteTask(id);
+  }
+
+  protected toggleDoneFromDetail(): void {
+    const id = this.detailTaskId();
+    if (id !== null) this.toggleDone(id);
   }
 
   protected changeStatus(payload: { id: TaskId; status: TaskStatus }): void {
@@ -399,9 +472,7 @@ export class BoardPage {
     const visible = this.view.columns().find((column) => column.status === status)?.tasks ?? [];
     const siblings = this.board
       .tasks()
-      .filter(
-        (other) => other.id !== task.id && other.listId === task.listId && other.status === status,
-      )
+      .filter((other) => other.id !== task.id && other.status === status)
       .sort(byOrder);
 
     const targetIndex = resolveDropIndex(task, siblings, visible, event.targetIndex);
@@ -449,7 +520,7 @@ export class BoardPage {
         this.focusTaskAt(position.columnIndex, column.tasks.length - 1);
         break;
       case 'Enter':
-        this.openEditTask(task.id);
+        this.openDetail(task.id);
         break;
       case ' ':
         this.board.toggleTaskDone(task.id);
