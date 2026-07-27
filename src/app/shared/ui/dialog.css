@@ -1,0 +1,61 @@
+:host {
+  display: contents;
+}
+
+dialog {
+  padding: 0;
+  border: none;
+  background: transparent;
+  max-width: min(92vw, 520px);
+  width: 100%;
+  margin: auto;
+}
+
+dialog.dialog--confirm {
+  max-width: min(92vw, 420px);
+}
+
+dialog::backdrop {
+  background: var(--scrim);
+}
+
+.dialog__panel {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--line);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+dialog[open] .dialog__panel {
+  animation: dialog-in var(--duration-base) var(--ease-entrance);
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (max-width: 767px) {
+  dialog {
+    max-width: 100%;
+    margin: auto auto 0 auto;
+  }
+
+  .dialog__panel {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 90vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog[open] .dialog__panel {
+    animation: none;
+  }
+}

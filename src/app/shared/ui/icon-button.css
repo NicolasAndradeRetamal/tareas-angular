@@ -1,0 +1,66 @@
+:host {
+  display: contents;
+}
+
+.icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+  background: transparent;
+  border: none;
+  transition:
+    background-color var(--duration-instant) linear,
+    color var(--duration-instant) linear;
+}
+
+.icon-button::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--ink);
+}
+
+.icon-button:active:not(:disabled) {
+  background: var(--press);
+}
+
+.icon-button[aria-pressed='true'] {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.icon-button--danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.icon-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.icon-button--sm {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.icon-button--lg {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+@media (pointer: coarse) {
+  .icon-button {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}

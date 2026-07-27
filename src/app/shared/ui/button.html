@@ -1,0 +1,11 @@
+<button
+  [type]="type()"
+  class="btn"
+  [class]="'btn--' + variant() + ' btn--' + size()"
+  [disabled]="disabled()"
+  [attr.aria-disabled]="disabled() ? true : null"
+  [attr.title]="disabled() && disabledReason() ? disabledReason() : null"
+  (click)="clicked.emit()"
+>
+  <ng-content />
+</button>

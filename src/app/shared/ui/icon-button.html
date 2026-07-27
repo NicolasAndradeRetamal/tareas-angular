@@ -1,0 +1,14 @@
+<button
+  type="button"
+  class="icon-button"
+  [class.icon-button--sm]="size() === 'sm'"
+  [class.icon-button--lg]="size() === 'lg'"
+  [class.icon-button--danger]="variant() === 'danger'"
+  [attr.aria-label]="label()"
+  [attr.aria-pressed]="pressed()"
+  [attr.title]="titleText"
+  [disabled]="disabled()"
+  (click)="clicked.emit()"
+>
+  <ng-content />
+</button>

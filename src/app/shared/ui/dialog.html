@@ -1,0 +1,11 @@
+<dialog
+  #dialogEl
+  class="dialog"
+  [class.dialog--confirm]="size() === 'confirm'"
+  (close)="closed.emit()"
+  (click)="onBackdropClick($event)"
+>
+  <div class="dialog__panel bg-overlay text-ink" (click)="$event.stopPropagation()">
+    <ng-content />
+  </div>
+</dialog>

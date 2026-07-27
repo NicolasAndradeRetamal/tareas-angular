@@ -1,0 +1,116 @@
+:host {
+  display: contents;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color var(--duration-instant) linear,
+    color var(--duration-instant) linear,
+    transform var(--duration-instant) linear;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Sizes */
+.btn--sm {
+  height: 1.75rem;
+  padding-inline: 0.5rem;
+}
+
+.btn--md {
+  height: 2.25rem;
+  padding-inline: 0.75rem;
+}
+
+.btn--lg {
+  height: 2.75rem;
+  padding-inline: 1rem;
+}
+
+@media (pointer: coarse) {
+  .btn {
+    min-height: 2.75rem;
+  }
+}
+
+/* Variants */
+.btn--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+  border: 1px solid transparent;
+}
+.btn--primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn--secondary {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+}
+.btn--secondary:hover:not(:disabled) {
+  background: var(--hover);
+}
+.btn--secondary:active:not(:disabled) {
+  background: var(--press);
+}
+
+.btn--subtle {
+  background: transparent;
+  color: var(--ink-muted);
+  border: 1px solid transparent;
+}
+.btn--subtle:hover:not(:disabled) {
+  background: var(--hover);
+  color: var(--ink);
+}
+.btn--subtle:active:not(:disabled) {
+  background: var(--press);
+}
+
+.btn--danger {
+  background: var(--danger);
+  color: var(--on-danger);
+  border: 1px solid transparent;
+}
+.btn--danger:hover:not(:disabled) {
+  background: var(--danger-hover);
+}
+
+.btn--danger-subtle {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid transparent;
+}
+.btn--danger-subtle:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
+.btn--link {
+  background: transparent;
+  color: var(--primary);
+  border: none;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  height: auto;
+  padding: 0;
+}
+.btn--link:hover:not(:disabled) {
+  color: var(--primary-hover);
+}

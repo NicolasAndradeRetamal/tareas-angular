@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid;
+  font-size: var(--text-sm);
+}
+
+.banner__icon {
+  flex-shrink: 0;
+}
+
+.banner__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner--info {
+  background: var(--info-soft);
+  border-color: color-mix(in srgb, var(--info) 35%, transparent);
+  color: var(--ink);
+}
+.banner--info .banner__icon {
+  color: var(--info);
+}
+
+.banner--warning {
+  background: var(--warning-soft);
+  border-color: color-mix(in srgb, var(--warning) 35%, transparent);
+  color: var(--ink);
+}
+.banner--warning .banner__icon {
+  color: var(--warning);
+}
+
+.banner--error {
+  background: var(--danger-soft);
+  border-color: color-mix(in srgb, var(--danger) 35%, transparent);
+  color: var(--ink);
+}
+.banner--error .banner__icon {
+  color: var(--danger);
+}
