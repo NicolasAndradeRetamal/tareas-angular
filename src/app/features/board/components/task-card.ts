@@ -103,12 +103,17 @@ export class TaskCard {
     return list ? LIST_COLOR_BG_CLASS[list.color] : '';
   });
 
-  protected readonly otherStatuses = computed(() =>
-    TASK_STATUSES.filter((status) => status !== this.task().status).map((status) => ({
-      status,
-      label: STATUS_LABELS[status],
-    })),
-  );
+  /**
+   * Excludes destinations already covered by another menu action: "Completada" duplicates
+   * "Completar", and "Por hacer" duplicates "Reabrir" (toggleDone always reopens to 'todo').
+   */
+  protected readonly otherStatuses = computed(() => {
+    const status = this.task().status;
+    const shortcutTarget: TaskStatus = status === 'done' ? 'todo' : 'done';
+    return TASK_STATUSES.filter(
+      (candidate) => candidate !== status && candidate !== shortcutTarget,
+    ).map((candidate) => ({ status: candidate, label: STATUS_LABELS[candidate] }));
+  });
 
   /** Anywhere on the card opens the detail, except the controls that do their own thing. */
   protected onCardClick(event: MouseEvent): void {
