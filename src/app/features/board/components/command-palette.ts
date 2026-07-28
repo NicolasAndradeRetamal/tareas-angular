@@ -1,11 +1,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   computed,
   effect,
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import type { ListId } from '../../../core/models/list';
 import type { Task, TaskId, TaskPriority } from '../../../core/models/task';
@@ -18,7 +20,7 @@ import { LIST_COLOR_BG_CLASS } from '../../../shared/ui/list-color';
 import { PRIORITY_BAR_CLASS } from '../../../shared/ui/priority-bar';
 import { DueLabelPipe } from '../../../shared/pipes/due-label-pipe';
 import type { PaletteContext, PaletteItem } from '../command-palette-search';
-import { buildPaletteGroups } from '../command-palette-search';
+import { buildPaletteGroups, initialActiveIndex } from '../command-palette-search';
 import type { ListSummary } from './list-sidebar';
 
 @Component({
@@ -40,8 +42,13 @@ export class CommandPalette {
   readonly redoLabel = input.required<string | null>();
   readonly hasActiveFilters = input.required<boolean>();
   readonly modKey = input.required<string>();
+  /** The board's active search, if any: the palette opens with it pre-filled and selected. */
+  readonly initialQuery = input('');
 
   readonly closed = output<void>();
+  /** Forwarded from Dialog: fires before native Esc/backdrop close restores the
+   * trigger's focus, so the board can tell that apart from a real refocus. */
+  readonly closing = output<void>();
   readonly createTask = output<string>();
   readonly createList = output<void>();
   readonly toggleTheme = output<void>();
@@ -120,14 +127,24 @@ export class CommandPalette {
   });
 
   private readonly today = todayIso();
+  private readonly queryInputRef = viewChild<ElementRef<HTMLInputElement>>('queryInput');
   private wasOpen = false;
 
   constructor() {
     effect(() => {
       const isOpen = this.open();
       if (isOpen && !this.wasOpen) {
-        this.query.set('');
-        this.activeIndex.set(0);
+        const preset = this.initialQuery();
+        this.query.set(preset);
+        this.activeIndex.set(initialActiveIndex(this.flatItems(), preset.length > 0));
+
+        // Set directly, not just through the signal: with text already selected,
+        // typing replaces it and Backspace clears it in one press.
+        const input = this.queryInputRef()?.nativeElement;
+        if (input) {
+          input.value = preset;
+          if (preset.length > 0) input.select();
+        }
       }
       this.wasOpen = isOpen;
     });

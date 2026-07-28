@@ -322,8 +322,13 @@ export function buildPaletteGroups(rawQuery: string, ctx: PaletteContext): reado
       }));
 
     const items: PaletteItem[] = [...visibleTasks];
-    if (matchedTasks.length > TASKS_CAP) {
-      const label = `Ver los ${matchedTasks.length} resultados en el tablero`;
+    // The board no longer has its own live search field: this row is the only way
+    // to apply a query to it, so it always closes the group, not just past the cap.
+    if (matchedTasks.length > 0) {
+      const label =
+        matchedTasks.length === 1
+          ? 'Ver 1 resultado en el tablero'
+          : `Ver los ${matchedTasks.length} resultados en el tablero`;
       items.push({
         kind: 'command',
         id: 'view-all-results',
@@ -339,4 +344,12 @@ export function buildPaletteGroups(rawQuery: string, ctx: PaletteContext): reado
   }
 
   return groups.filter((group) => group.items.length > 0);
+}
+
+/** Row to highlight when the palette opens with a preset query: the first real
+ * match, skipping the leading "create task" action an immediate Enter would trigger. */
+export function initialActiveIndex(items: readonly PaletteItem[], hasPresetQuery: boolean): number {
+  if (!hasPresetQuery) return 0;
+  const index = items.findIndex((item) => item.id !== 'create-task');
+  return index >= 0 ? index : 0;
 }

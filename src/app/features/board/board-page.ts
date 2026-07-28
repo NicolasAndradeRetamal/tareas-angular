@@ -118,11 +118,10 @@ export class BoardPage {
   protected readonly view = inject(BoardViewStore);
   protected readonly theme = inject(ThemeStore);
 
-  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-
   protected readonly themeOptions = THEME_OPTIONS;
   /** Platform doesn't change mid-session: computed once per component instance. */
   protected readonly modKey = modifierKeyLabel();
+  protected readonly modKeyShortcut = isMacPlatform() ? 'Meta+K' : 'Control+K';
 
   // --- UI state ---
   protected readonly sidebarOpen = signal(false);
@@ -130,6 +129,11 @@ export class BoardPage {
   protected readonly overflowMenuOpen = signal(false);
   protected readonly shortcutsOpen = signal(false);
   protected readonly paletteOpen = signal(false);
+  private readonly searchTrigger = viewChild<ElementRef<HTMLButtonElement>>('searchTrigger');
+  /** Closing returns focus to the trigger, which would immediately reopen it if its own
+   * (focus) handler couldn't tell that apart from the user focusing it again. Set the
+   * instant a close starts (Dialog's `closing`), before the browser restores focus. */
+  private suppressNextTriggerFocus = false;
   protected readonly confirmRequest = signal<ConfirmRequest | null>(null);
   protected readonly seedNoticeDismissed = signal(false);
   protected readonly loadIssueDismissed = signal(false);
@@ -330,19 +334,41 @@ export class BoardPage {
 
   // --- Search and filters ---
 
-  protected onSearchInput(event: Event): void {
-    this.view.setQuery((event.target as HTMLInputElement).value);
-  }
-
   protected clearSearch(): void {
     this.view.setQuery('');
-    this.searchInput()?.nativeElement.focus();
+    this.suppressNextTriggerFocus = true;
+    this.searchTrigger()?.nativeElement.focus();
   }
 
   /** The palette's "Ver los N resultados" row: same search, but on the full board. */
   protected onPaletteViewAllResults(query: string): void {
     this.selectList(null);
     this.view.setQuery(query);
+  }
+
+  // --- Search / command trigger ---
+
+  protected openPalette(): void {
+    this.paletteOpen.set(true);
+  }
+
+  /** Ignores the focus a closed palette or a cleared search hands back to the
+   * trigger; only an actual later interaction should open the palette again. */
+  protected onSearchTriggerFocus(): void {
+    if (this.suppressNextTriggerFocus) {
+      this.suppressNextTriggerFocus = false;
+      return;
+    }
+    this.paletteOpen.set(true);
+  }
+
+  /** Fires before the native close restores focus to the trigger. */
+  protected onPaletteClosing(): void {
+    this.suppressNextTriggerFocus = true;
+  }
+
+  protected onPaletteClosed(): void {
+    this.paletteOpen.set(false);
   }
 
   // --- Task dialogs ---
@@ -751,18 +777,13 @@ export class BoardPage {
 
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
 
-    if (isEditableTarget(event.target)) {
-      if (event.key === 'Escape' && event.target === this.searchInput()?.nativeElement) {
-        this.view.setQuery('');
-      }
-      return;
-    }
+    if (isEditableTarget(event.target)) return;
 
     if (this.anyDialogOpen()) return;
 
     switch (event.key) {
       case '/':
-        this.searchInput()?.nativeElement.focus();
+        this.paletteOpen.set(true);
         break;
       case 'n':
       case 'N':

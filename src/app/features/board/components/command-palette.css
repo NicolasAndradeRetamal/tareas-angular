@@ -9,7 +9,15 @@
   height: 52px;
   flex-shrink: 0;
   padding-inline: 16px;
-  border-bottom: 1px solid var(--line);
+  /* Width fixed at 2px in both states so focus never shifts the layout by a pixel. */
+  border-bottom: 2px solid var(--line);
+}
+
+/* The field autofocuses on open, so the global ring would sit right inside the
+   panel's own border — two concentric frames for one control. This is that
+   control's own focus treatment, not a change to the ring rule elsewhere. */
+.cmdpalette__header:focus-within {
+  border-bottom-color: var(--primary);
 }
 
 .cmdpalette__input {
@@ -20,6 +28,10 @@
   background: transparent;
   color: var(--ink);
   font-size: var(--text-base);
+}
+
+.cmdpalette__input:focus-visible {
+  outline: none;
 }
 
 .cmdpalette__input::placeholder {
