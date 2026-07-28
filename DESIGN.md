@@ -123,6 +123,43 @@ límites de trabajo en curso: son tres estados fijos de un tablero personal, y
 hacerlos configurables sería abstracción sin uso. El tablero tampoco se desplaza
 lateralmente como el de Trello, porque tres columnas siempre caben (§15).
 
+### 1.7 Segunda familia: la paleta de comandos
+
+La superposición de `Ctrl`+`K` no es una invención de este proyecto: es un
+**command palette**, la misma pieza que llevan los editores de código y las
+herramientas de productividad modernas. Se hereda su comportamiento completo,
+porque quien la abre ya sabe usarla y cualquier variación se lee como un fallo.
+
+| Referencia | Qué aporta |
+|---|---|
+| **VS Code** (`Ctrl`+`Shift`+`P` y `Ctrl`+`P`) | El origen del patrón y el mínimo indiscutible: un campo, coincidencia difusa mientras se escribe, flechas para recorrer, `Enter` ejecuta, `Esc` cierra. También la distinción entre buscar *comandos* y buscar *cosas*, que aquí se resuelve con grupos en lugar de con dos paletas distintas |
+| **Linear** (`Ctrl`+`K`) | La paleta dentro de un gestor de tareas, no de un editor: comandos que actúan sobre la entidad, resultados agrupados por tipo y acciones secundarias sobre el elemento resaltado. Es la referencia más cercana al problema |
+| **Raycast** | El acabado del lanzador: pie con la leyenda de teclas siempre visible, una acción principal por fila y las secundarias anunciadas ahí mismo, en lugar de escondidas |
+
+Se descartan Spotlight y Alfred como referencia: son buscadores del sistema
+operativo, no paletas de acciones sobre un modelo propio, y su modelo de
+resultados no aplica.
+
+### 1.8 Lo que cualquiera da por sentado en una paleta, y verificación
+
+Misma mecánica que §1.5–1.6: lista de comprobación y veredicto sobre el boceto
+de partida, uno por uno. La especificación resultante es §10.19.
+
+| # | Convención | Veredicto sobre el boceto de partida |
+|---|---|---|
+| P1 | Se abre con `Ctrl`+`K` desde cualquier punto y también desde un disparador visible: no es una función secreta | **Parcial → corregido.** El disparador existía, pero llevaba una lupa —indistinguible del buscador que ya hay en la barra— y las teclas estampadas dentro del botón, contra §7.5. Ahora tiene icono propio, etiqueta «Comandos» y las teclas en el título emergente |
+| P2 | El campo recibe el foco al abrir y todo se escribe ahí; no hay ningún otro sitio donde escribir | Cumple |
+| P3 | La coincidencia es difusa y filtra con cada pulsación, sin botón de buscar, y se ve qué parte del texto coincidió | **No cumplía → corregido.** El boceto no decía cómo se busca. Se fija coincidencia por subsecuencia sin acentos, orden por calidad de coincidencia y realce de las letras acertadas |
+| P4 | Los resultados van agrupados por tipo, con el rótulo del grupo a la vista | **Parcial → corregido.** Los grupos eran cuatro y dos de ellos —«Listas» e «Ir a»— significaban lo mismo. Quedan tres: Acciones, Ir a y Tareas |
+| P5 | Siempre hay exactamente una fila resaltada; las flechas la mueven sin sacar el foco del campo y la lista envuelve por los extremos | Cumple. Se añade que el puntero mueve el mismo resaltado, para que nunca haya dos filas «actuales» |
+| P6 | `Enter` ejecuta la fila resaltada y `Esc` cierra devolviendo el foco a donde estaba | **Parcial → corregido.** Faltaba decir a dónde vuelve el foco y qué ocurre con un diálogo ya abierto |
+| P7 | No hace falta el ratón para nada, y el ratón tampoco estorba | **No cumplía → corregido.** No estaba dicho qué hace `Enter` sobre una tarea ni cómo se completa sin ratón, que es justo lo que pide el alcance (§10.19.4) |
+| P8 | La paleta se cierra sola al ejecutar y al hacer clic fuera; no se queda flotando sobre el tablero | **No cumplía → corregido.** Ahora está fijado, con un único desvío justificado: la acción secundaria de completar no cierra |
+| P9 | El pie recuerda las teclas disponibles para la fila resaltada | Cumple. La leyenda pasa a ser contextual, no fija |
+| P10 | Sin consulta, la paleta ya ofrece algo útil; no abre en blanco | **No cumplía → corregido.** Al abrir muestra los comandos frecuentes y las listas |
+| P11 | Sin resultados se dice citando la consulta y se ofrece una salida razonable | **Parcial → corregido.** El mensaje estaba; la salida —crear la tarea con ese mismo texto— no |
+| P12 | No se listan comandos que ahora mismo no se pueden ejecutar | **No cumplía → corregido.** Cada comando declara su condición de disponibilidad; «Deshacer» sin historial, «Limpiar filtros» sin filtros o «Vaciar el tablero» con el tablero vacío no aparecen |
+
 ---
 
 ## 2. Color
@@ -521,6 +558,7 @@ Regla: **nada dura más de 250 ms** y nada se anima que no sea `opacity`,
 | Diálogo | Velo: opacidad 0→1, 150 ms `ease-entrance`. Panel: opacidad 0→1 + `scale(.98)→1` + `translateY(4px)→0`, 200 ms `ease-entrance` | 150 ms `ease-exit`, mismos valores invertidos |
 | Menú / desplegable | Opacidad 0→1 + `scale(.97)→1` con origen en el disparador, 150 ms `ease-entrance` | 90 ms `ease-exit` |
 | Aviso breve (toast) | `translateY(8px)→0` + opacidad, 200 ms `ease-entrance` | `translateX(8px)` + opacidad, 150 ms `ease-exit`; la pila recoloca el resto en 200 ms `ease-standard` |
+| Paleta de comandos | Velo: opacidad 0→1, 150 ms. Panel: opacidad 0→1 + `scale(.98)→1` + `translateY(-4px)→0`, 150 ms `ease-entrance` —más rápida que un diálogo: es un lanzador y se abre muchas veces seguidas | 90 ms `ease-exit`. Los resultados **no se animan** al filtrar: la lista cambia en el mismo fotograma que la letra escrita |
 | Cajón de listas (móvil) | `translateX(-100%)→0`, 250 ms `ease-standard`; velo en paralelo | 200 ms `ease-exit` |
 | Tarjeta creada | Opacidad 0→1 + `translateY(-4px)→0`, 200 ms, **más** un destello de fondo `primary-soft` que se desvanece en 1200 ms | — |
 | Tarjeta eliminada | Opacidad 1→0 + `scale(.98)`, 150 ms; el hueco se cierra en 200 ms `ease-standard` | — |
@@ -608,9 +646,11 @@ en las opciones de tema.
 
 ### 7.4 Inventario de atajos
 
-La columna **Fase** indica en qué versión existe el atajo. **La hoja de atajos
-de la aplicación solo lista los atajos que ya funcionan**: los de la fase 2 no
-aparecen hasta que se construyen.
+La columna **Fase** dice si el atajo ya funciona (`1`) o si todavía no se ha
+construido (`2`). **La hoja de atajos de la aplicación solo lista los de fase 1**
+(§11.3). `Ctrl`+`K`, `Ctrl`+`Z` y `Ctrl`+`Shift`+`Z` estuvieron marcados como
+fase 2 y **ahora son fase 1**: la paleta (§10.19) y deshacer/rehacer (§10.20)
+existen, así que entran también en la hoja de atajos.
 
 | Atajo | Acción | Ámbito | Fase |
 |---|---|---|---|
@@ -619,14 +659,18 @@ aparecen hasta que se construyen.
 | `L` | Nueva lista | Global | 1 |
 | `?` | Abrir la hoja de atajos | Global | 1 |
 | `T` | Cambiar entre claro y oscuro | Global | 1 |
-| `Esc` | Cerrar diálogo, menú o cajón; con el buscador enfocado, vaciarlo | Global | 1 |
+| `Ctrl`+`K` | Abrir la paleta de comandos | Global | 1 |
+| `Ctrl`+`Z` | Deshacer la última acción | Global | 1 |
+| `Ctrl`+`Shift`+`Z` | Rehacer la última acción deshecha | Global | 1 |
+| `Esc` | Cerrar diálogo, paleta, menú o cajón; con el buscador enfocado, vaciarlo | Global | 1 |
 | `↑` `↓` `←` `→` | Navegar entre tarjetas y columnas | Tablero | 1 |
 | `Enter` | Abrir el detalle de la tarea enfocada | Tablero | 1 |
 | `Espacio` | Completar o reabrir la tarea enfocada | Tablero | 1 |
 | `Supr` | Eliminar la tarea enfocada | Tablero | 1 |
 | `Ctrl`+`Enter` | Guardar el formulario | Diálogo | 1 |
-| `Ctrl`+`K` | Abrir la paleta de comandos | Global | 2 |
-| `Ctrl`+`Z` / `Ctrl`+`Shift`+`Z` | Deshacer / rehacer | Global | 2 |
+| `↑` `↓` | Mover el resaltado entre resultados | Paleta | 1 |
+| `Enter` | Ejecutar la fila resaltada | Paleta | 1 |
+| `Ctrl`+`Enter` | Completar o reabrir la tarea resaltada, sin cerrar la paleta | Paleta | 1 |
 | `Ctrl`+`↑` `↓` | Mover la tarjeta dentro de su columna | Tablero | 2 |
 | `Ctrl`+`←` `→` | Mover la tarjeta a la columna contigua | Tablero | 2 |
 
@@ -634,6 +678,13 @@ Reglas de comportamiento:
 
 - Los atajos de una sola tecla **se ignoran mientras el foco está en un campo de
   texto** o hay un diálogo modal abierto (salvo `Esc` y `Ctrl`+`Enter`).
+- Los atajos con modificador **sí funcionan dentro de un campo de texto**, con
+  dos excepciones: con un diálogo modal abierto, `Ctrl`+`K` no hace nada —no se
+  apilan capas modales— y `Ctrl`+`Enter` guarda el formulario, que es lo que ese
+  ámbito espera.
+- `Ctrl`+`Z` dentro de un campo de texto lo deja al navegador: deshacer lo que
+  se está escribiendo es lo que el usuario quiere ahí. Fuera de un campo,
+  deshace la última acción del tablero.
 - En macOS, `Ctrl` se muestra y se escucha como `⌘`. La hoja de atajos detecta
   la plataforma y pinta el símbolo correcto.
 - Ningún atajo pisa uno del navegador (`Ctrl`+`T`, `Ctrl`+`N`, `Ctrl`+`W`): por
@@ -1030,16 +1081,21 @@ pegajosa; al desplazar la página gana `shadow-sm` (transición 150 ms).
 marca «Tareas» · botón de icono «Buscar» (abre el buscador a pantalla completa
 sobre la barra) · botón de icono «Nueva tarea» · menú `⋯`.
 
-**Escritorio (`md`+)**: marca «Tareas» + nombre de la lista activa · buscador
-centrado · a la derecha: botón primario «Nueva tarea» con su `kbd` `N` ·
+**Escritorio (`md`+)**: marca «Tareas» + nombre de la lista activa · grupo de
+**deshacer y rehacer** (§10.20) · buscador centrado · botón secundario
+**«Comandos»** (§10.19) · a la derecha: botón primario «Nueva tarea» ·
 conmutador de tema · botón de icono «Atajos de teclado» (`?`) · menú `⋯`.
 
-El menú `⋯` agrupa lo que no cabe: «Atajos de teclado», «Acerca de tus datos»,
-divisor, y «Vaciar el tablero» en peligro sutil, **siempre separada del resto por
-un divisor** por ser destructiva.
+El grupo de deshacer/rehacer va pegado al buscador por la izquierda, separado de
+la marca por 12 px; «Comandos» queda inmediatamente a la derecha del buscador,
+porque las tres cosas son formas de llegar a algo y se leen juntas.
 
-En la fase 2 se añaden a la izquierda del buscador los botones de deshacer y
-rehacer, y el disparador de la paleta de comandos (§14).
+El menú `⋯` agrupa lo que no cabe. En escritorio: «Atajos de teclado», «Acerca de
+tus datos», divisor, y «Vaciar el tablero» en peligro sutil, **siempre separada
+del resto por un divisor** por ser destructiva. **En móvil el menú encabeza con
+«Deshacer», «Rehacer» y «Comandos»** —con su icono de 16 px y el nombre de la
+acción concreta—, seguidos de un divisor y del resto: la barra móvil ya lleva
+cinco controles y añadir dos flechas más dejaría áreas táctiles pegadas.
 
 ### 10.8 Panel de listas
 
@@ -1224,6 +1280,179 @@ menús, avisos breves, confirmaciones y títulos emergentes.
   horizontal en ninguna pantalla ni en ningún ancho, ni descolocar la tarjeta, el
   detalle, el panel de listas o el aviso que los cita.
 
+### 10.19 Paleta de comandos (`Ctrl`+`K`)
+
+Un único sitio para hacer cualquier cosa sin tocar el ratón: crear una tarea,
+encontrarla, completarla, cambiar de lista o cambiar de tema. Cumple §1.8.
+
+**Disparador visible.** En escritorio, botón secundario en la barra superior con
+icono propio de paleta (rectángulo con un cursor `›_`, 16 px) y etiqueta
+**«Comandos»**; título emergente «Comandos (`Ctrl` `K`)», con las teclas en el
+título y nunca dentro de la etiqueta (§7.5). No lleva lupa: la lupa ya es del
+buscador y dos lupas en la misma barra significarían dos cosas distintas. En
+móvil y en táctil, el disparador es la fila «Comandos» del menú `⋯` (§10.7).
+
+**Anatomía**
+
+| Parte | Especificación |
+|---|---|
+| Superposición | Velo `scrim`; panel `overlay`, radio `lg`, `shadow-lg`, ancho máximo 560 px, centrado y anclado al 15 % de la altura. En móvil: ancho de la ventana menos 16 px por lado, anclado a 8 %, altura máxima 70 vh |
+| Cabecera (52 px) | Lupa de 20 px `ink-subtle` · campo sin borde de 44 px, `text-base`, marcador de posición «Buscar tareas o escribir un comando» · a la derecha, `Esc` en `kbd` (no se pinta en táctil) |
+| Cuerpo | Altura máxima 360 px con desplazamiento propio; grupos de resultados con rótulo en versalitas de 11 px `ink-subtle` con `tracking-caps`, 8 px de aire sobre cada rótulo |
+| Fila (44 px; 48 en táctil) | Icono de 16 px · etiqueta · contexto a la derecha en `text-xs` `ink-subtle` · `kbd` del atajo si lo tiene. Relleno lateral 12 px, radio `sm` |
+| Pie (36 px) | Fondo `sunken`, borde superior `line`, `text-2xs` `ink-subtle`, leyenda **contextual** de teclas alineada a la izquierda y recuento de resultados a la derecha («8 resultados») |
+
+**Grupos**, en este orden fijo. Nunca se muestra un grupo vacío ni su rótulo.
+
+| Grupo | Contenido | Qué hace `Enter` | Tope |
+|---|---|---|---|
+| **Acciones** | Con consulta, encabeza **«Crear la tarea “{consulta}”»**. Luego: Nueva tarea, Nueva lista, Deshacer: {acción}, Rehacer: {acción}, Tema claro / oscuro / seguir al sistema, Atajos de teclado, Limpiar filtros, Vaciar el tablero | Ejecuta el comando y cierra la paleta. Los que abren un diálogo (crear tarea o lista, vaciar) lo dejan abierto con el foco dentro | 6 |
+| **Ir a** | «Todas las tareas» y cada lista, con su punto de color y su contador | Navega a `/tablero` o `/tablero/{id}` y cierra | 6 |
+| **Tareas** | Tareas que coinciden, ordenadas por calidad de coincidencia y, a igualdad, por prioridad descendente | Va a la tarea: cierra la paleta, navega a su lista si hacía falta, desplaza su tarjeta a la vista con destello `primary-soft` y abre su detalle (§11.3) | 8, y si hay más, una última fila «Ver los {n} resultados en el tablero» que cierra y vuelca la consulta en el buscador |
+
+- **Comandos no disponibles no se listan** (P12): sin historial no hay «Deshacer»,
+  sin filtros activos no hay «Limpiar filtros», con el tablero ya vacío no hay
+  «Vaciar el tablero». Nunca se muestra una fila deshabilitada: en una lista que
+  se recorre con flechas, una fila inerte es una trampa.
+- **Sin consulta** la paleta abre con Acciones (los comandos frecuentes) e «Ir a».
+  Nunca en blanco.
+- **Fila de tarea**: medidor de prioridad (§10.15) · título en una línea con
+  elipsis · a la derecha, columna y lista en `ink-subtle`, más la cápsula de fecha
+  solo si la tarea está vencida o vence hoy. Una tarea completada se pinta con su
+  marca de verificación de 16 px `success` y el título tachado, igual que en la
+  tarjeta (§3.3).
+
+**Estados**
+
+| Estado | Aspecto |
+|---|---|
+| Fila en reposo | Sin fondo; etiqueta `ink`, contexto `ink-subtle` |
+| Fila resaltada | Fondo `primary-soft`, barra izquierda de 3 px `primary`, etiqueta peso 500. Es el lenguaje de selección de §7.2, sin anillo: el foco está en el campo |
+| Hover del puntero | **Mueve el resaltado** a esa fila; no existe un realce aparte. Así nunca hay dos filas «actuales» |
+| Pulsada | Velo `press` durante 90 ms |
+| Coincidencia | Las letras acertadas de la consulta se pintan en peso 600 y `ink`; el resto de la etiqueta, en `ink-muted`. Nunca solo color |
+| Sin resultados | Bloque centrado de 96 px: icono de 20 px `ink-subtle`, texto `text-sm` «Sin resultados para “xyz”» y, debajo, la única fila disponible —«Crear la tarea “xyz”»— ya resaltada, para que `Enter` siga sirviendo de algo |
+| Cargando | **No existe.** Todo el estado vive en memoria y el filtrado es síncrono; una barra de progreso aquí sería teatro |
+| Deshabilitado | **No existe** a nivel de fila (ver arriba). El disparador nunca se deshabilita |
+
+**Comportamiento**
+
+- **Apertura**: `Ctrl`+`K` desde cualquier punto, también con el foco dentro de un
+  campo de texto. Con un diálogo modal abierto no hace nada (§7.4). El campo
+  arranca **vacío** en cada apertura: no recuerda la consulta anterior.
+- **Búsqueda difusa** sobre título y descripción de la tarea, nombre de lista y
+  etiqueta de comando: coincidencia por subsecuencia sobre el texto normalizado
+  sin acentos y sin distinguir mayúsculas —«info» encuentra «Informe» y «cafe»
+  encuentra «café»—, ordenada por prefijo, luego por inicio de palabra, luego por
+  subsecuencia suelta. Filtra con cada pulsación, sin espera ni botón de buscar.
+- **Navegación**: `↑` `↓` mueven el resaltado y **envuelven** por los extremos;
+  `Inicio` y `Fin` van a la primera y a la última fila; el foco no sale nunca del
+  campo (`aria-activedescendant`). El cuerpo se desplaza para mantener visible la
+  fila resaltada.
+- **Cierre**: al ejecutar la acción principal, con `Esc` y al hacer clic en el
+  velo. Siempre devuelve el foco a donde estaba antes de abrir. Cambiar de
+  pestaña no la cierra: al volver, sigue como estaba.
+- **Anuncio**: región `polite` con el recuento («8 resultados», «Sin
+  resultados») que también se ve en el pie, para que la reacción sea visible y
+  audible.
+- **Roles**: contenedor `role="dialog"` `aria-modal="true"` con nombre «Paleta de
+  comandos»; campo `role="combobox"` con `aria-expanded` y `aria-controls`; lista
+  `role="listbox"`; grupos `role="group"` con `aria-labelledby` a su rótulo; filas
+  `role="option"` con `aria-selected`.
+
+#### 10.19.4 Completar una tarea desde la paleta
+
+Sobre un resultado de tarea hay dos intenciones distintas —**ir a ella** y
+**completarla**— y hay que elegir cómo conviven.
+
+**Decisión: una sola fila por tarea, con acción principal y acción secundaria.**
+`Enter` va a la tarea; `Ctrl`+`Enter` la completa (o la reabre si ya estaba
+completada) **sin cerrar la paleta**. Mientras la fila resaltada es una tarea, el
+pie lo dice con todas las letras: «`↑` `↓` navegar · `Enter` ir a la tarea ·
+`Ctrl` `Enter` completar · `Esc` cerrar». Es el modelo de Raycast y de Linear:
+una fila, una acción principal, las secundarias anunciadas en el pie.
+
+Por qué así, y qué se descartó:
+
+- **Dos filas por tarea («Ir a X» / «Completar X»)**: duplica la lista, obliga a
+  leer el mismo título dos veces y hace que buscar «informe» devuelva el doble de
+  resultados. Descartado.
+- **Un comando en dos pasos («Completar una tarea…» y luego elegirla)**: es
+  idiomático, pero cuesta una pulsación más y obliga a decidir la acción antes de
+  saber si la tarea existe, que es al revés de como se piensa. Se descarta porque
+  el pie contextual ya hace visible la acción secundaria justo cuando aplica.
+- **Que `Enter` complete y algo secundario lleve a la tarea**: sería la única
+  paleta del mundo en la que `Enter` sobre un resultado no lo abre. Descartado.
+
+**Desvío consciente de P8** (la paleta se cierra al ejecutar): `Ctrl`+`Enter`
+**no** cierra, porque completar varias tareas seguidas es el caso de uso real y
+volver a abrir y reescribir la consulta por cada una sería un castigo. Para que
+no parezca que no ha pasado nada, la acción tiene tres reacciones visibles a la
+vez: la fila cambia al aspecto de completada en el sitio, el contexto de la fila
+pasa a «Completadas», y sube el aviso breve «Tarea completada · **Deshacer**»
+(§11.0.1), que se dibuja **por encima** de la paleta para que su «Deshacer» sea
+alcanzable con el ratón y con `Tab`.
+
+### 10.20 Deshacer y rehacer
+
+Cualquier acción sobre los datos —crear, editar, completar, mover, eliminar,
+vaciar— se puede deshacer. Lo que **no** entra en el historial es lo que se ve:
+filtros, búsqueda, lista activa y tema. Deshacer nunca cambia lo que estás
+mirando, solo lo que hiciste.
+
+**Botones de la barra superior** (escritorio `md`+): dos botones de solo icono
+—flecha curva antihoraria y horaria, **20 px**, área visual 36×36, área táctil
+44×44 garantizada—, agrupados con 4 px entre ellos y 12 px del resto, a la
+izquierda del buscador (§10.7).
+
+| Estado | Aspecto y texto |
+|---|---|
+| Reposo | Icono `ink-muted`, sin fondo (variante sutil) |
+| Hover | Velo `hover`, icono `ink` |
+| Foco | Anillo global (§7.1) |
+| Activo | Velo `press` |
+| Deshabilitado | Opacidad 45 %, `cursor: not-allowed`, `aria-disabled="true"` —anunciable, no saltado por el `Tab`— y el motivo en el título emergente: «No hay nada que deshacer» / «No hay nada que rehacer» |
+| Cargando | **No existe**: la operación es síncrona |
+
+- **Título emergente y nombre accesible nombran la acción concreta**: «Deshacer:
+  mover tarea (`Ctrl` `Z`)», «Rehacer: eliminar tarea (`Ctrl` `Shift` `Z`)». El
+  nombre sale de la etiqueta en español de la mutación; las teclas viven solo en
+  el título emergente (§7.5).
+- **En móvil** no ocupan la barra: son las dos primeras filas del menú `⋯`, con
+  el mismo texto («Deshacer: mover tarea») y su `kbd` a la derecha (§10.9).
+- No hay lista desplegable de historial ni contador de pasos: no está construido
+  y por tanto no se insinúa.
+
+**Qué se ve al deshacer o rehacer**
+
+- Aviso breve **sin acción**: «Se deshizo: mover tarea» / «Se rehizo: eliminar
+  tarea». No lleva «Deshacer» dentro, porque el camino de vuelta es el botón de
+  rehacer, que acaba de habilitarse a la vista.
+- La tarjeta afectada se desplaza a la vista y recibe el destello `primary-soft`
+  de 1200 ms. Si la acción tocó muchas tarjetas (eliminar una lista, vaciar el
+  tablero) no hay destello individual: hablan el aviso y los contadores.
+- **Si lo restaurado no es visible con los filtros o la lista activos**, el aviso
+  lo dice para que la acción no parezca perdida: «Se deshizo: eliminar tarea · No
+  coincide con los filtros activos».
+- El foco no se mueve: deshacer no debe robar el sitio al teclado.
+- El historial guarda las **50 últimas acciones** y vive solo mientras la pestaña
+  está abierta; al recargar, los dos botones arrancan deshabilitados con su
+  motivo en el título emergente.
+
+**Acciones destructivas.** Eliminar una tarea, eliminar una lista y vaciar el
+tablero pasan a mostrar aviso breve con «Deshacer», en la misma ranura y con el
+mismo formato que ya usa completar (§10.12, §11.0.1). Textos exactos:
+
+| Acción | Aviso |
+|---|---|
+| Eliminar tarea | Tarea «Preparar informe» eliminada · **Deshacer** |
+| Eliminar lista | Lista «Trabajo» y sus 7 tareas eliminadas · **Deshacer** |
+| Vaciar el tablero | Tablero vaciado: 12 tareas eliminadas · **Deshacer** |
+
+Sigue habiendo confirmación previa (§11.3): el aviso es la red de seguridad, no
+el sustituto de la pregunta. La cita del título se recorta a una línea (§10.18) y
+«Deshacer» hereda la tinta del aviso; nunca se pinta en violeta.
+
 ---
 
 ## 11. Vistas
@@ -1379,9 +1608,21 @@ Cada una dice exactamente qué se pierde: «Se eliminarán la lista “Trabajo�
 7 tareas.» / «Se eliminarán las 12 tareas del tablero y quedará una lista vacía.»
 Botón de peligro con la acción nombrada.
 
-**Hoja de atajos** (`?`), 520 px: tabla de dos columnas agrupada por ámbito
-—Global, Tablero, Diálogo—, con la descripción a la izquierda y las teclas a la
-derecha. Solo lista atajos existentes.
+**Hoja de atajos** (`?`), 520 px: tabla de dos columnas agrupada por ámbito, con
+la descripción a la izquierda y las teclas a la derecha en `kbd` (§10.14). Es el
+lugar donde se aprenden los atajos; en la interfaz nunca van estampados sobre un
+botón, solo en el título emergente del control (§7.5). **Solo lista atajos que ya
+funcionan** —los de fase 1 de §7.4—, en cuatro grupos:
+
+| Grupo | Atajos |
+|---|---|
+| Global | `Ctrl` `K` paleta de comandos · `Ctrl` `Z` deshacer · `Ctrl` `Shift` `Z` rehacer · `/` buscar · `N` nueva tarea · `L` nueva lista · `T` cambiar de tema · `?` esta hoja · `Esc` cerrar o vaciar la búsqueda |
+| Tablero | `↑` `↓` `←` `→` navegar · `Enter` abrir el detalle · `Espacio` completar o reabrir · `Supr` eliminar |
+| Paleta de comandos | `↑` `↓` navegar · `Enter` ejecutar · `Ctrl` `Enter` completar la tarea resaltada · `Esc` cerrar |
+| Diálogo | `Ctrl` `Enter` guardar · `Esc` cerrar |
+
+En macOS se pinta `⌘` en lugar de `Ctrl` (§7.4). Todavía no aparece `Ctrl`+
+flechas para mover tarjetas: aún no existe.
 
 **Acerca de tus datos**, 520 px, abierto desde el menú `⋯`: explica en tres
 frases que todo se guarda en este navegador, que no viaja a ningún servidor, que
@@ -1509,46 +1750,19 @@ Objetivos comprobables, además de los contrastes de §2.6:
 
 ---
 
-## 14. Adelanto de la fase 2
+## 14. Lo que todavía no existe
 
-No se construye ahora y **no aparece en la interfaz** hasta que exista. Se
-documenta para que el sistema de hoy la admita sin rediseño.
+No se construye ahora y **no aparece en la interfaz** hasta que exista: ni
+deshabilitado, ni como «próximamente». Se anota aquí para que el sistema actual
+lo admita sin rediseño.
 
-### 14.1 Paleta de comandos (`Ctrl`+`K`)
-
-- Superposición centrada horizontalmente y anclada a 15 % de la altura, ancho
-  máximo 560 px, panel `overlay`, radio `lg`, `shadow-lg`, velo `scrim`.
-- **Cabecera**: campo de entrada sin bordes, 44 px de alto, `text-base`, con la
-  lupa de 20 px a la izquierda y `Esc` en `kbd` a la derecha.
-- **Cuerpo**: resultados agrupados con rótulos en versalitas de 11 px
-  («Acciones», «Tareas», «Listas», «Ir a»), filas de 40 px con icono de 16 px,
-  etiqueta, contexto a la derecha en `ink-subtle` y `kbd` si el comando tiene
-  atajo. La fila resaltada usa fondo `primary-soft` con barra izquierda
-  `primary` —el mismo lenguaje de «selección» de §7.2— y se mueve con flechas
-  sin perder el foco del campo (`aria-activedescendant`).
-- **Pie**: leyenda con `↑` `↓` navegar · `Enter` ejecutar · `Esc` cerrar.
-- Reutiliza las tarjetas y cápsulas ya definidas para mostrar tareas en los
-  resultados, y el estado vacío pequeño («Sin resultados para “xyz”») dentro del
-  panel.
-- Su disparador visible es un botón secundario en la barra superior con la lupa
-  y las teclas `Ctrl` `K`: la paleta no puede ser una función secreta.
-
-### 14.2 Deshacer y rehacer
-
-- Dos botones de solo icono (flechas curvas, 20 px, 36×36 visual, 44×44 táctil)
-  en la barra superior, a la izquierda del buscador, **agrupados y separados del
-  resto por 12 px**. Deshabilitados cuando no hay nada que deshacer o rehacer,
-  con el motivo en el título emergente.
-- El título emergente nombra la acción concreta: «Deshacer: mover tarea
-  (`Ctrl` `Z`)».
-- Al deshacer, aviso breve informativo: «Se deshizo: eliminar tarea», y la
-  tarjeta afectada recibe el destello `primary-soft` para que se vea dónde
-  reapareció.
-- Los avisos de las acciones destructivas suman «Deshacer» en la misma ranura que
-  ya usa el de completar (§11.0.1): «Tarea eliminada · **Deshacer**». La acción
-  hereda la tinta del aviso, nunca se pinta en violeta.
-- El movimiento de tarjetas con `Ctrl`+flechas se anuncia por región activa igual
-  que el arrastre (§8.4).
+- **Mover tarjetas con `Ctrl`+flechas** (§7.4, fase 2): el modelo ya lo soporta
+  —es la misma llamada que el arrastre— y se anunciará por región activa igual
+  que él (§8.4). Hasta entonces, el camino sin ratón es «Mover a ›» del menú de
+  la tarjeta.
+- **Instalación y uso sin conexión**: además de los iconos del manifiesto (§1.3),
+  hará falta un aviso de «hay una versión nueva» como banner (§10.13). Se
+  especificará cuando se construya.
 
 ---
 
@@ -1570,3 +1784,8 @@ documenta para que el sistema de hoy la admita sin rediseño.
 | 12 | La tarjeta no lleva casilla de completar | Casilla como atajo a «Completadas» | La columna ya expresa el estado. Dos portadores de la misma verdad se contradicen, y una casilla que hace saltar la tarjeta de columna no se explica sola (K2) |
 | 13 | Completar tiene su entrada propia en el menú de la tarjeta | Obligar a arrastrar o a usar «Mover a ›» | Es la acción más frecuente; quitarle la casilla no puede significar encarecerla |
 | 14 | Corte de palabra en todo texto escrito por el usuario | Recortar con elipsis y aceptar el desbordamiento | Una sola palabra larga no puede romper un diálogo ni abrir desplazamiento horizontal (K16) |
+| 15 | Una fila por tarea en la paleta: `Enter` va a ella, `Ctrl`+`Enter` la completa | Dos filas por tarea; un comando en dos pasos «Completar una tarea…» | Dos filas duplican la lista y el título; el comando en dos pasos obliga a elegir la acción antes de saber si la tarea existe. La acción secundaria se anuncia en el pie justo cuando aplica (§10.19.4) |
+| 16 | La acción secundaria de la paleta no la cierra | Cerrar siempre al ejecutar, como manda la convención | Completar varias tareas seguidas es el caso real; reabrir y reescribir la consulta cada vez sería un castigo. A cambio, la acción deja tres señales visibles a la vez |
+| 17 | El disparador de la paleta lleva icono propio y etiqueta «Comandos», no una lupa | Botón con lupa y las teclas estampadas | La lupa ya es del buscador; dos lupas en la misma barra significarían dos cosas. Las teclas van en el título emergente (§7.5) |
+| 18 | Deshacer y rehacer viven en el menú `⋯` en móvil, no en la barra | Dos botones más en la barra móvil | La barra ya lleva cinco controles; dos flechas más dejarían áreas táctiles pegadas por debajo del mínimo |
+| 19 | El aviso de «Se deshizo: X» no ofrece «Deshacer» | Encadenar deshacer dentro del propio aviso | El camino de vuelta es el botón de rehacer, que se acaba de habilitar a la vista; un «Deshacer» dentro de un aviso de deshacer no se entiende |
