@@ -120,6 +120,18 @@ for (const [nombre, viewport] of Object.entries(VIEWPORTS)) {
             if (!alcanzable)
               problemas.push(`«${etiqueta}»: la opción «${texto}» queda tapada o recortada`);
           }
+          // Un panel que abre desplazado obliga al usuario a subir para leer
+          // desde el principio: pasa cuando nadie define el foco inicial.
+          const desplazado = await panel
+            .evaluate((el) => {
+              const desplazado = [el, ...el.querySelectorAll('*')].find(
+                (n) => (n as HTMLElement).scrollTop > 4,
+              );
+              return desplazado ? (desplazado as HTMLElement).scrollTop : 0;
+            })
+            .catch(() => 0);
+          if (desplazado > 4)
+            problemas.push(`«${etiqueta}» abre desplazado ${Math.round(desplazado)}px hacia abajo`);
           await page.keyboard.press('Escape').catch(() => {});
         }
         expect(problemas, problemas.join('; ')).toEqual([]);
@@ -211,6 +223,13 @@ test.describe('tablero', () => {
     const detalle = page.locator('[role="dialog"]:visible').first();
     await expect(detalle).toBeVisible();
     await expect(detalle).toContainText(titulo);
+
+    // Regresión: el foco inicial caía en «Eliminar» (primer botón enfocable del
+    // pie) en vez del título, porque el encabezado vive detrás de un @if propio
+    // del detalle que puede no estar listo cuando el diálogo llama a showModal().
+    await expect(detalle.locator('h2')).toBeFocused();
+    const scrollTop = await detalle.locator('.dialog__panel').evaluate((el) => el.scrollTop);
+    expect(scrollTop, 'el detalle de la tarea abre desplazado').toBe(0);
   });
 
   test('las tarjetas no llevan casilla: el estado lo dice la columna', async ({ page }) => {
@@ -441,11 +460,32 @@ test.describe('tablero', () => {
 test.describe('paleta de comandos', () => {
   test.use({ viewport: VIEWPORTS.escritorio });
 
-  test('Ctrl+K la abre desde cualquier sitio, incluso con el buscador enfocado', async ({
+  test('el buscador de la barra es el único disparador: enfocarlo abre la paleta', async ({
     page,
   }) => {
     await irA(page, '/tablero');
-    await page.locator('.topbar__search-input').click();
+    const disparador = page.getByRole('button', { name: /buscar o ejecutar/i });
+    await expect(disparador).toBeVisible();
+
+    await disparador.click();
+
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await expect(paleta).toBeVisible();
+    await expect(paleta.locator('.cmdpalette__input')).toBeFocused();
+  });
+
+  test('no hay un botón «Comandos» aparte', async ({ page }) => {
+    await irA(page, '/tablero');
+    await expect(page.getByRole('button', { name: /^comandos$/i })).toHaveCount(0);
+  });
+
+  test('Ctrl+K la abre incluso con el foco dentro de un campo, fuera de un diálogo', async ({
+    page,
+  }) => {
+    await irA(page, '/tablero');
+    // El filtro de prioridad es un <select>: un campo editable que no vive
+    // dentro de ningún diálogo modal.
+    await page.locator('.priority-filter__select').focus();
 
     await page.keyboard.press('Control+K');
 
@@ -454,11 +494,25 @@ test.describe('paleta de comandos', () => {
     await expect(paleta.locator('.cmdpalette__input')).toBeFocused();
   });
 
-  test('Esc la cierra y devuelve el foco a donde estaba', async ({ page }) => {
+  test('Ctrl+K no hace nada con otro diálogo modal ya abierto', async ({ page }) => {
     await irA(page, '/tablero');
-    const disparador = page.getByRole('button', { name: /^comandos$/i });
+    await page
+      .getByRole('button', { name: /nueva tarea/i })
+      .first()
+      .click();
+    const formulario = page.locator('[role="dialog"]:visible').first();
+    await expect(formulario).toBeVisible();
+
+    await page.keyboard.press('Control+K');
+
+    await expect(formulario).toBeVisible();
+    await expect(page.getByRole('dialog', { name: /paleta de comandos/i })).toBeHidden();
+  });
+
+  test('Esc la cierra y devuelve el foco al disparador, sin volver a abrirla', async ({ page }) => {
+    await irA(page, '/tablero');
+    const disparador = page.getByRole('button', { name: /buscar o ejecutar/i });
     await disparador.focus();
-    await page.keyboard.press('Enter');
 
     const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
     await expect(paleta).toBeVisible();
@@ -651,8 +705,7 @@ test.describe('paleta de comandos y menú — móvil', () => {
     // Con contexto (estado · lista) y cápsula de fecha a la vez, el título debe
     // seguir teniendo espacio razonable en el ancho de un teléfono.
     await irA(page, '/tablero');
-    await page.getByRole('button', { name: /más acciones/i }).click();
-    await page.getByRole('menuitem', { name: /^comandos$/i }).click();
+    await page.getByRole('button', { name: /buscar o ejecutar/i }).click();
     const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
     await paleta.waitFor({ state: 'visible' });
     await paleta.locator('.cmdpalette__input').fill('informe');
