@@ -128,4 +128,58 @@ describe('BoardPage', () => {
     expect(text()).toContain('Tu tablero está vacío');
     expect(cards().length).toBe(0);
   });
+
+  describe('undo and redo shortcuts', () => {
+    function pressGlobal(key: string, extra: KeyboardEventInit = {}) {
+      document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, ...extra }));
+    }
+
+    it('does nothing when there is no history yet', async () => {
+      const before = board.tasks().length;
+      pressGlobal('z', { ctrlKey: true });
+      await fixture.whenStable();
+
+      expect(board.tasks().length).toBe(before);
+      expect(text()).not.toContain('Se deshizo');
+    });
+
+    it('undoes the last mutation and names it in an informational toast', async () => {
+      const id = board.createTask({ listId: board.lists()[0].id, title: 'Recién creada' });
+      await fixture.whenStable();
+
+      pressGlobal('z', { ctrlKey: true });
+      await fixture.whenStable();
+
+      expect(board.taskIndex().has(id)).toBe(false);
+      expect(text()).toContain('Se deshizo: crear tarea');
+    });
+
+    it('redoes with Ctrl+Shift+Z', async () => {
+      const id = board.createTask({ listId: board.lists()[0].id, title: 'Recién creada' });
+      board.undo();
+      await fixture.whenStable();
+
+      pressGlobal('Z', { ctrlKey: true, shiftKey: true });
+      await fixture.whenStable();
+
+      expect(board.taskIndex().has(id)).toBe(true);
+      expect(text()).toContain('Se rehizo: crear tarea');
+    });
+
+    it('leaves Ctrl+Z to the browser while a text field is focused', async () => {
+      board.createTask({ listId: board.lists()[0].id, title: 'Recién creada' });
+      await fixture.whenStable();
+      const before = board.tasks().length;
+
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('.topbar__search-input');
+      input.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+      await fixture.whenStable();
+
+      expect(board.tasks().length).toBe(before);
+    });
+  });
+
+  // The "X eliminada · Deshacer" toasts fire from onConfirmed(), reached only through
+  // the confirm <dialog>; jsdom has no HTMLDialogElement.showModal, so that path — like
+  // every other dialog in this component — is covered end to end instead.
 });

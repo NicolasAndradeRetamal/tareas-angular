@@ -12,6 +12,33 @@
       </span>
     </div>
 
+    <div class="hidden items-center gap-1 md:flex" data-menu="history">
+      <app-icon-button
+        label="Deshacer"
+        [hint]="
+          undoLabel()
+            ? 'Deshacer: ' + undoLabel() + ' (' + modKey + ' Z)'
+            : 'No hay nada que deshacer'
+        "
+        [disabled]="undoLabel() === null"
+        (clicked)="undo()"
+      >
+        <app-icon name="undo" [size]="20" />
+      </app-icon-button>
+      <app-icon-button
+        label="Rehacer"
+        [hint]="
+          redoLabel()
+            ? 'Rehacer: ' + redoLabel() + ' (' + modKey + ' Shift Z)'
+            : 'No hay nada que rehacer'
+        "
+        [disabled]="redoLabel() === null"
+        (clicked)="redo()"
+      >
+        <app-icon name="redo" [size]="20" />
+      </app-icon-button>
+    </div>
+
     <div class="topbar__search">
       <app-icon
         name="search"
@@ -50,6 +77,17 @@
         <app-icon-button label="Nueva tarea" hint="Nueva tarea (N)" (clicked)="openCreateTask()">
           <app-icon name="plus" [size]="20" />
         </app-icon-button>
+      </span>
+
+      <span class="hidden md:block">
+        <app-button
+          variant="secondary"
+          [title]="'Comandos (' + modKey + ' K)'"
+          (clicked)="paletteOpen.set(true)"
+        >
+          <app-icon name="command" [size]="16" />
+          Comandos
+        </app-button>
       </span>
 
       <div class="relative" data-menu="theme">
@@ -104,6 +142,36 @@
 
         @if (overflowMenuOpen()) {
           <div class="menu" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              class="menu__item md:hidden"
+              (click)="overflowMenuOpen.set(false); paletteOpen.set(true)"
+            >
+              <app-icon name="command" [size]="16" />
+              Comandos
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu__item md:hidden"
+              [disabled]="undoLabel() === null"
+              (click)="overflowMenuOpen.set(false); undo()"
+            >
+              <app-icon name="undo" [size]="16" />
+              {{ undoLabel() ? 'Deshacer: ' + undoLabel() : 'Deshacer' }}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu__item md:hidden"
+              [disabled]="redoLabel() === null"
+              (click)="overflowMenuOpen.set(false); redo()"
+            >
+              <app-icon name="redo" [size]="16" />
+              {{ redoLabel() ? 'Rehacer: ' + redoLabel() : 'Rehacer' }}
+            </button>
+            <div class="menu__divider" role="separator"></div>
             <button
               type="button"
               role="menuitem"
@@ -253,6 +321,7 @@
   [lists]="lists()"
   [defaultListId]="view.activeListId()"
   [defaultStatus]="newTaskStatus()"
+  [defaultTitle]="newTaskTitle()"
   (create)="onCreateTask($event)"
   (update)="onUpdateTask($event)"
   (deleteRequested)="requestDeleteTask($event)"
@@ -271,8 +340,39 @@
 />
 
 @if (toastMessage(); as message) {
-  <app-toast [message]="message" actionLabel="Deshacer" (action)="undoLastAction()" />
+  <app-toast
+    [message]="message"
+    [actionLabel]="toastUndoable() ? 'Deshacer' : null"
+    (action)="undoLastAction()"
+  />
 }
+
+<app-command-palette
+  [open]="paletteOpen()"
+  [lists]="listSummaries()"
+  [tasks]="allTasks()"
+  [totalPendingCount]="pendingTotal()"
+  [themeResolved]="theme.resolved()"
+  [canUndo]="undoLabel() !== null"
+  [canRedo]="redoLabel() !== null"
+  [undoLabel]="undoLabel()"
+  [redoLabel]="redoLabel()"
+  [hasActiveFilters]="view.hasActiveFilters()"
+  [modKey]="modKey"
+  (closed)="paletteOpen.set(false)"
+  (createTask)="openCreateTask('todo', $event)"
+  (createList)="openCreateList()"
+  (toggleTheme)="theme.toggle()"
+  (undo)="undo()"
+  (redo)="redo()"
+  (openShortcuts)="shortcutsOpen.set(true)"
+  (clearFilters)="view.resetFilters()"
+  (clearBoard)="requestClearBoard()"
+  (goToList)="selectList($event)"
+  (openTask)="openDetail($event)"
+  (toggleTaskDone)="toggleDone($event)"
+  (viewAllResults)="onPaletteViewAllResults($event)"
+/>
 
 <app-list-form
   [open]="listFormOpen()"
