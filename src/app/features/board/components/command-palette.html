@@ -96,10 +96,15 @@
                   {{ statusLabelOf(entry.item) }} · {{ entry.item.listName }}
                 </span>
                 @if (showDueBadge(entry.item)) {
-                  <app-badge [variant]="isOverdue(entry.item) ? 'danger' : 'warning'">
+                  <span
+                    class="cmdpalette__due"
+                    [class.cmdpalette__due--danger]="isOverdue(entry.item)"
+                  >
                     <app-icon [name]="isOverdue(entry.item) ? 'warning' : 'calendar'" [size]="12" />
-                    {{ entry.item.dueDate | dueLabel: false }}
-                  </app-badge>
+                    <span class="cmdpalette__due-text">{{
+                      entry.item.dueDate | dueLabel: false
+                    }}</span>
+                  </span>
                 }
               }
               @case ('command') {

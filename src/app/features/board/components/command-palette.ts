@@ -11,7 +11,6 @@ import type { ListId } from '../../../core/models/list';
 import type { Task, TaskId, TaskPriority } from '../../../core/models/task';
 import { PRIORITY_WEIGHT, STATUS_LABELS } from '../../../core/models/task';
 import { isOverdue, todayIso } from '../../../core/util/date';
-import { Badge } from '../../../shared/ui/badge';
 import { Dialog } from '../../../shared/ui/dialog';
 import { nextDomId } from '../../../shared/ui/dom-id';
 import { Icon } from '../../../shared/ui/icon';
@@ -24,7 +23,7 @@ import type { ListSummary } from './list-sidebar';
 
 @Component({
   selector: 'app-command-palette',
-  imports: [Dialog, Icon, Badge, DueLabelPipe],
+  imports: [Dialog, Icon, DueLabelPipe],
   templateUrl: './command-palette.html',
   styleUrl: './command-palette.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
