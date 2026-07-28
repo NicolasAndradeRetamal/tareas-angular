@@ -128,6 +128,64 @@ for (const [nombre, viewport] of Object.entries(VIEWPORTS)) {
   });
 }
 
+for (const [nombre, viewport] of Object.entries(VIEWPORTS)) {
+  test.describe(`${nombre} — contenido largo`, () => {
+    test.use({ viewport });
+
+    test('una palabra muy larga no rompe ningún contenedor', async ({ page }) => {
+      await irA(page, '/tablero');
+      // Texto sin espacios: el caso que revienta cajas mal configuradas.
+      // El título se queda por debajo de su límite de 120 caracteres a propósito:
+      // aquí se prueba el corte de palabra, no la validación de longitud.
+      const tituloLargo = 'Interminable'.repeat(9);
+      const descripcionLarga = 'Interminable'.repeat(20);
+
+      await page
+        .getByRole('button', { name: /nueva tarea/i })
+        .first()
+        .click();
+      const formulario = page.locator('[role="dialog"]:visible').first();
+      await formulario.locator('#task-title').fill(tituloLargo);
+      await formulario.locator('#task-description').fill(descripcionLarga);
+      await formulario.getByRole('button', { name: /crear tarea/i }).click();
+      await expect(formulario).toBeHidden();
+
+      // Y el mismo texto en el detalle, que es donde se ve entero.
+      await page.locator('.task-card', { hasText: 'Interminable' }).first().click();
+      const detalle = page.locator('[role="dialog"]:visible').first();
+      await expect(detalle).toBeVisible();
+
+      // Se miden los elementos que llevan el texto, no los contenedores de
+      // maquetación: los botones de icono amplían su área táctil con un
+      // pseudo-elemento que desborda unos píxeles dentro del relleno, a propósito.
+      const desbordes = await page.evaluate(() =>
+        [...document.querySelectorAll('p, h1, h2, h3, span, time, li, td')]
+          .filter((e) => {
+            if (!e.textContent?.includes('Interminable')) return false;
+            const est = getComputedStyle(e);
+            if (est.overflowX === 'auto' || est.overflowX === 'scroll') return false;
+            return e.scrollWidth > e.clientWidth + 1 && e.clientWidth > 0;
+          })
+          .slice(0, 5)
+          .map(
+            (e) =>
+              `${e.tagName.toLowerCase()}.${(e.className || '').toString().slice(0, 30)} ` +
+              `(${e.scrollWidth} > ${e.clientWidth})`,
+          ),
+      );
+      expect(desbordes, `contenedores desbordados: ${desbordes.join(', ')}`).toEqual([]);
+
+      // Ni el diálogo ni la página admiten desplazamiento lateral (DESIGN §10.18).
+      const panel = detalle.locator('.dialog__panel');
+      const panelDesborda = await panel.evaluate((e) => e.scrollWidth > e.clientWidth + 1);
+      expect(panelDesborda, 'el detalle no debe desplazarse en horizontal').toBe(false);
+
+      const scroll = await page.evaluate(() => document.documentElement.scrollWidth);
+      expect(scroll).toBeLessThanOrEqual(viewport.width + 1);
+    });
+  });
+}
+
 test.describe('tablero', () => {
   test.use({ viewport: VIEWPORTS.escritorio });
 
@@ -155,12 +213,18 @@ test.describe('tablero', () => {
     await expect(detalle).toContainText(titulo);
   });
 
-  test('completar desde la tarjeta avisa y permite deshacer', async ({ page }) => {
+  test('las tarjetas no llevan casilla: el estado lo dice la columna', async ({ page }) => {
+    await irA(page, '/tablero');
+    await expect(page.locator('.task-card [role="checkbox"]')).toHaveCount(0);
+  });
+
+  test('completar desde el menú de la tarjeta avisa y permite deshacer', async ({ page }) => {
     await irA(page, '/tablero');
 
     const pendiente = page.locator('.task-card:not(.task-card--done)').first();
     const titulo = (await pendiente.locator('h3').innerText()).trim();
-    await pendiente.locator('[role="checkbox"]').click();
+    await pendiente.locator('.task-card__menu-trigger').click();
+    await page.getByRole('menuitem', { name: /^completar$/i }).click();
 
     const aviso = page.getByRole('status').filter({ hasText: 'Tarea completada' });
     await expect(aviso).toBeVisible();
@@ -169,6 +233,79 @@ test.describe('tablero', () => {
     await expect(page.locator('.task-card', { hasText: titulo }).first()).not.toHaveClass(
       /task-card--done/,
     );
+  });
+
+  test('se arrastra una tarjeta de una columna a otra', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    const origen = page.locator('.task-column').first();
+    const destino = page.locator('.task-column').nth(1);
+    const tarjeta = origen.locator('.task-card').first();
+    const titulo = (await tarjeta.locator('h3').innerText()).trim();
+    const enDestinoAntes = await destino.locator('.task-card').count();
+
+    const asa = tarjeta.locator('.task-card__handle');
+    const cajaAsa = await asa.boundingBox();
+    const cajaDestino = await destino.locator('.task-column__body').boundingBox();
+
+    await page.mouse.move(cajaAsa!.x + cajaAsa!.width / 2, cajaAsa!.y + cajaAsa!.height / 2);
+    await page.mouse.down();
+    // Pasos intermedios: sin ellos el CDK no llega a registrar la entrada en la columna.
+    await page.mouse.move(cajaDestino!.x + cajaDestino!.width / 2, cajaDestino!.y + 20, {
+      steps: 25,
+    });
+    // La columna bajo el puntero tiene que decir que es el destino.
+    await expect(destino).toHaveClass(/task-column--drop-target/);
+    await page.mouse.up();
+
+    await expect(destino.locator('.task-card', { hasText: titulo })).toHaveCount(1);
+    expect(await destino.locator('.task-card').count()).toBe(enDestinoAntes + 1);
+    await expect(origen.locator('.task-card', { hasText: titulo })).toHaveCount(0);
+
+    // El cambio de estado debe sobrevivir a una recarga, no solo verse en pantalla.
+    // Se espera al guardado real: las aserciones de arriba pasan sobre el DOM que
+    // mueve el CDK, que existe aunque el estado no haya cambiado.
+    await expect
+      .poll(() =>
+        page.evaluate((t) => {
+          const raw = localStorage.getItem('tareas-angular:board');
+          const doc = raw
+            ? (JSON.parse(raw) as { tasks: { title: string; status: string }[] })
+            : null;
+          return doc?.tasks.find((task) => task.title === t)?.status ?? null;
+        }, titulo),
+      )
+      .toBe('in-progress');
+
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(
+      page.locator('.task-column').nth(1).locator('.task-card', { hasText: titulo }),
+    ).toHaveCount(1);
+  });
+
+  test('arrastrar hasta «Completada» avisa y permite deshacer', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    const origen = page.locator('.task-column').first();
+    const completadas = page.locator('.task-column').nth(2);
+    const tarjeta = origen.locator('.task-card').first();
+    const titulo = (await tarjeta.locator('h3').innerText()).trim();
+
+    const cajaAsa = await tarjeta.locator('.task-card__handle').boundingBox();
+    const cajaDestino = await completadas.locator('.task-column__body').boundingBox();
+
+    await page.mouse.move(cajaAsa!.x + cajaAsa!.width / 2, cajaAsa!.y + cajaAsa!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(cajaDestino!.x + cajaDestino!.width / 2, cajaDestino!.y + 20, {
+      steps: 25,
+    });
+    await page.mouse.up();
+
+    const aviso = page.getByRole('status').filter({ hasText: 'Tarea completada' });
+    await expect(aviso).toBeVisible();
+
+    await aviso.getByRole('button', { name: /deshacer/i }).click();
+    await expect(origen.locator('.task-card', { hasText: titulo })).toHaveCount(1);
   });
 
   test('el error del título no aparece antes de intentar enviar', async ({ page }) => {
