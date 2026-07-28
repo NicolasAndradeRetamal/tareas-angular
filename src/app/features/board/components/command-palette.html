@@ -1,0 +1,134 @@
+<app-dialog [open]="open()" size="palette" [labelledBy]="titleId" (closed)="closed.emit()">
+  <h2 [id]="titleId" class="sr-only">Paleta de comandos</h2>
+
+  <div class="cmdpalette__header">
+    <app-icon name="search" [size]="20" class="shrink-0 text-ink-subtle" aria-hidden="true" />
+    <input
+      #queryInput
+      type="text"
+      class="cmdpalette__input"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Buscar tareas o escribir un comando"
+      role="combobox"
+      aria-expanded="true"
+      aria-controls="command-palette-listbox"
+      [attr.aria-activedescendant]="activeItemId()"
+      [value]="query()"
+      (input)="onQueryInput($event)"
+      (keydown)="onKeydown($event)"
+    />
+    <kbd class="kbd shrink-0">Esc</kbd>
+  </div>
+
+  <div id="command-palette-listbox" class="cmdpalette__body" role="listbox" aria-label="Resultados">
+    @if (isEmptyResult()) {
+      <div class="cmdpalette__empty">
+        <app-icon name="search" [size]="20" class="text-ink-subtle" aria-hidden="true" />
+        <p class="text-sm text-ink-subtle">Sin resultados para «{{ query().trim() }}»</p>
+      </div>
+    }
+
+    @for (group of renderGroups(); track group.label) {
+      <div role="group" [attr.aria-labelledby]="groupHeadingId(group.label)">
+        <p [id]="groupHeadingId(group.label)" class="cmdpalette__group-label">{{ group.label }}</p>
+
+        @for (entry of group.items; track entry.item.id) {
+          <button
+            type="button"
+            role="option"
+            [id]="rowId(entry.index)"
+            class="cmdpalette__row"
+            [class.cmdpalette__row--active]="entry.index === activeIndex()"
+            [attr.aria-selected]="entry.index === activeIndex()"
+            (mouseenter)="onRowHover(entry.index)"
+            (click)="execute(entry.item)"
+          >
+            <span class="cmdpalette__leading" aria-hidden="true">
+              @switch (entry.item.kind) {
+                @case ('command') {
+                  <app-icon [name]="entry.item.icon" [size]="16" class="text-ink-subtle" />
+                }
+                @case ('go-list') {
+                  @if (entry.item.colorClass) {
+                    <span class="h-2 w-2 rounded-full" [class]="entry.item.colorClass"></span>
+                  } @else {
+                    <app-icon name="inbox" [size]="16" class="text-ink-subtle" />
+                  }
+                }
+                @case ('task') {
+                  <span class="flex items-end gap-0.5">
+                    @for (active of priorityBars(entry.item.priority); track $index) {
+                      <span
+                        class="h-2.5 w-0.5 rounded-[2px]"
+                        [class]="
+                          active ? priorityBarClass(entry.item.priority) : 'bg-line-strong/40'
+                        "
+                      ></span>
+                    }
+                  </span>
+                }
+              }
+            </span>
+
+            <span class="cmdpalette__label user-text">
+              @if (entry.item.kind === 'task' && entry.item.done) {
+                <app-icon
+                  name="circle-check"
+                  [size]="14"
+                  class="mr-1 inline text-success"
+                  aria-hidden="true"
+                />
+              }
+              <span [class.line-through]="entry.item.kind === 'task' && entry.item.done">
+                @for (segment of entry.item.segments; track $index) {
+                  <span [class.cmdpalette__match]="segment.matched">{{ segment.text }}</span>
+                }
+              </span>
+            </span>
+
+            @switch (entry.item.kind) {
+              @case ('go-list') {
+                <span class="cmdpalette__context" data-numeric>{{ entry.item.count }}</span>
+              }
+              @case ('task') {
+                <span class="cmdpalette__context">
+                  {{ statusLabelOf(entry.item) }} · {{ entry.item.listName }}
+                </span>
+                @if (showDueBadge(entry.item)) {
+                  <app-badge [variant]="isOverdue(entry.item) ? 'danger' : 'warning'">
+                    <app-icon [name]="isOverdue(entry.item) ? 'warning' : 'calendar'" [size]="12" />
+                    {{ entry.item.dueDate | dueLabel: false }}
+                  </app-badge>
+                }
+              }
+              @case ('command') {
+                @if (entry.item.keys) {
+                  <span class="flex shrink-0 items-center gap-0.5">
+                    @for (key of entry.item.keys; track key) {
+                      <kbd class="kbd">{{ key === 'Ctrl' ? modKey() : key }}</kbd>
+                    }
+                  </span>
+                }
+              }
+            }
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="cmdpalette__footer">
+    <span>
+      @if (activeItem()?.kind === 'task') {
+        <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> navegar · <kbd class="kbd">Enter</kbd> ir
+        a la tarea · <kbd class="kbd">{{ modKey() }}</kbd> <kbd class="kbd">Enter</kbd> completar ·
+        <kbd class="kbd">Esc</kbd> cerrar
+      } @else {
+        <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> navegar ·
+        <kbd class="kbd">Enter</kbd> ejecutar · <kbd class="kbd">Esc</kbd> cerrar
+      }
+    </span>
+    <span data-numeric>{{ resultCountLabel() }}</span>
+  </div>
+</app-dialog>
