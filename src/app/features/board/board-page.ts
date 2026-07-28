@@ -14,6 +14,8 @@ import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { Router } from '@angular/router';
 import type { CreateTaskInput, UpdateTaskInput } from '../../core/models/board-state';
 import type { List, ListId } from '../../core/models/list';
+import { MUTATION_LABELS } from '../../core/models/mutation';
+import type { MutationKind } from '../../core/models/mutation';
 import type { Task, TaskId, TaskStatus } from '../../core/models/task';
 import { PRIORITY_LABELS, STATUS_LABELS } from '../../core/models/task';
 import { BoardStore } from '../../core/state/board-store';
@@ -21,6 +23,7 @@ import { BoardViewStore } from '../../core/state/board-view-store';
 import type { StatusFilter } from '../../core/state/board-view-store';
 import { ThemeStore } from '../../core/state/theme-store';
 import type { ThemePreference } from '../../core/state/theme-store';
+import { isMacPlatform, modifierKeyLabel } from '../../core/util/platform';
 import { byOrder } from '../../core/util/order';
 import { Banner } from '../../shared/ui/banner';
 import { Button } from '../../shared/ui/button';
@@ -30,6 +33,7 @@ import { IconButton } from '../../shared/ui/icon-button';
 import { ConfirmDialog } from '../../shared/ui/confirm-dialog';
 import { LIST_COLOR_BG_CLASS } from '../../shared/ui/list-color';
 import { BoardToolbar } from './components/board-toolbar';
+import { CommandPalette } from './components/command-palette';
 import { EmptyState } from './components/empty-state';
 import { ListForm } from './components/list-form';
 import type { ListFormMode, ListFormResult } from './components/list-form';
@@ -60,6 +64,18 @@ const HIGHLIGHT_MS = 1200;
 /** Long enough to read the notice and reach for «Deshacer». */
 const TOAST_MS = 6000;
 
+function lowerFirst(text: string): string {
+  return text.length === 0 ? text : text[0].toLowerCase() + text.slice(1);
+}
+
+function truncateForQuote(text: string, max = 40): string {
+  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+}
+
+function eliminadasPhrase(count: number): string {
+  return count === 1 ? '1 tarea eliminada' : `${count} tareas eliminadas`;
+}
+
 const PERSISTENCE_MESSAGES = {
   quota:
     'No se pudieron guardar los últimos cambios: el almacenamiento del navegador está lleno. Tu trabajo sigue en pantalla, pero se perderá al cerrar la pestaña.',
@@ -79,6 +95,7 @@ const PERSISTENCE_MESSAGES = {
     TaskForm,
     TaskDetail,
     ListForm,
+    CommandPalette,
     ShortcutsDialog,
     ConfirmDialog,
     EmptyState,
@@ -104,12 +121,15 @@ export class BoardPage {
   private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
 
   protected readonly themeOptions = THEME_OPTIONS;
+  /** Platform doesn't change mid-session: computed once per component instance. */
+  protected readonly modKey = modifierKeyLabel();
 
   // --- UI state ---
   protected readonly sidebarOpen = signal(false);
   protected readonly themeMenuOpen = signal(false);
   protected readonly overflowMenuOpen = signal(false);
   protected readonly shortcutsOpen = signal(false);
+  protected readonly paletteOpen = signal(false);
   protected readonly confirmRequest = signal<ConfirmRequest | null>(null);
   protected readonly seedNoticeDismissed = signal(false);
   protected readonly loadIssueDismissed = signal(false);
@@ -118,6 +138,7 @@ export class BoardPage {
   protected readonly taskFormMode = signal<TaskFormMode>('create');
   protected readonly editingTaskId = signal<TaskId | null>(null);
   protected readonly newTaskStatus = signal<TaskStatus>('todo');
+  protected readonly newTaskTitle = signal('');
 
   protected readonly listFormOpen = signal(false);
   protected readonly listFormMode = signal<ListFormMode>('create');
@@ -125,6 +146,9 @@ export class BoardPage {
 
   protected readonly detailTaskId = signal<TaskId | null>(null);
   protected readonly toastMessage = signal<string | null>(null);
+  /** Only toasts about an action the user just took offer "Deshacer"; informational
+   * ones (manual undo/redo) don't, since the way back is the other history button. */
+  protected readonly toastUndoable = signal(false);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
   private dragCancelled = false;
 
@@ -134,6 +158,7 @@ export class BoardPage {
   // --- Derived ---
   protected readonly lists = this.board.lists;
   protected readonly listIndex = this.board.listIndex;
+  protected readonly allTasks = this.board.tasks;
   protected readonly persistenceError = this.board.persistenceError;
 
   protected readonly editingTask = computed<Task | null>(() => {
@@ -230,9 +255,20 @@ export class BoardPage {
       this.taskFormOpen() ||
       this.listFormOpen() ||
       this.shortcutsOpen() ||
+      this.paletteOpen() ||
       this.detailTaskId() !== null ||
       this.confirmRequest() !== null,
   );
+
+  protected readonly undoLabel = computed(() => {
+    const kind = this.board.undoKind();
+    return kind === null ? null : lowerFirst(MUTATION_LABELS[kind]);
+  });
+
+  protected readonly redoLabel = computed(() => {
+    const kind = this.board.redoKind();
+    return kind === null ? null : lowerFirst(MUTATION_LABELS[kind]);
+  });
 
   /** Always present so the dialog can stay mounted and close properly, returning focus. */
   protected readonly confirmCopy = computed(() => {
@@ -303,10 +339,17 @@ export class BoardPage {
     this.searchInput()?.nativeElement.focus();
   }
 
+  /** The palette's "Ver los N resultados" row: same search, but on the full board. */
+  protected onPaletteViewAllResults(query: string): void {
+    this.selectList(null);
+    this.view.setQuery(query);
+  }
+
   // --- Task dialogs ---
 
-  protected openCreateTask(status: TaskStatus = 'todo'): void {
+  protected openCreateTask(status: TaskStatus = 'todo', presetTitle = ''): void {
     this.newTaskStatus.set(status);
+    this.newTaskTitle.set(presetTitle);
     this.editingTaskId.set(null);
     this.taskFormMode.set('create');
     this.taskFormOpen.set(true);
@@ -354,9 +397,66 @@ export class BoardPage {
     this.dismissToast();
   }
 
-  private showToast(message: string): void {
+  /** Ctrl+Z, the topbar button and the palette's "Deshacer" command all land here. */
+  protected undo(): void {
+    if (!this.board.canUndo()) return;
+    const kind = this.board.undoKind();
+    const before = this.board.tasks();
+    this.board.undo();
+    this.announceHistoryToast('Se deshizo', kind, before);
+  }
+
+  protected redo(): void {
+    if (!this.board.canRedo()) return;
+    const kind = this.board.redoKind();
+    const before = this.board.tasks();
+    this.board.redo();
+    this.announceHistoryToast('Se rehizo', kind, before);
+  }
+
+  /**
+   * Finds the one task a create/update/move/status/delete mutation touched, by
+   * diffing task lists before and after. Multi-task mutations (delete a list, clear
+   * the board) have no single task to flash or check, so this returns null for them.
+   */
+  private findAffectedTaskId(before: readonly Task[]): TaskId | null {
+    const beforeById = new Map(before.map((task) => [task.id, task]));
+    const after = this.board.tasks();
+    for (const task of after) {
+      const previous = beforeById.get(task.id);
+      if (!previous || previous.updatedAt !== task.updatedAt) return task.id;
+    }
+    const afterIds = new Set(after.map((task) => task.id));
+    for (const task of before) {
+      if (!afterIds.has(task.id)) return task.id;
+    }
+    return null;
+  }
+
+  private announceHistoryToast(
+    verb: 'Se deshizo' | 'Se rehizo',
+    kind: MutationKind | null,
+    before: readonly Task[],
+  ): void {
+    if (kind === null) return;
+    let message = `${verb}: ${lowerFirst(MUTATION_LABELS[kind])}`;
+
+    const affectedId = this.findAffectedTaskId(before);
+    if (affectedId !== null && this.board.taskIndex().has(affectedId)) {
+      if (this.view.visibleTasks().some((task) => task.id === affectedId)) {
+        this.flashTask(affectedId);
+        document.getElementById(`task-${affectedId}`)?.scrollIntoView({ block: 'nearest' });
+      } else {
+        message += ' · No coincide con los filtros activos';
+      }
+    }
+    this.showToast(message);
+  }
+
+  private showToast(message: string, options: { undoable?: boolean } = {}): void {
     if (this.toastTimer !== null) clearTimeout(this.toastTimer);
     this.toastMessage.set(message);
+    this.toastUndoable.set(options.undoable ?? false);
     this.toastTimer = setTimeout(() => this.toastMessage.set(null), TOAST_MS);
   }
 
@@ -456,16 +556,34 @@ export class BoardPage {
     if (request === null) return;
 
     switch (request.kind) {
-      case 'delete-task':
+      case 'delete-task': {
+        const task = this.board.taskIndex().get(request.id);
         this.board.deleteTask(request.id);
         this.taskFormOpen.set(false);
+        if (task) {
+          this.showToast(`Tarea «${truncateForQuote(task.title)}» eliminada`, { undoable: true });
+        }
         break;
-      case 'delete-list':
+      }
+      case 'delete-list': {
+        const list = this.listIndex().get(request.id);
+        const affected = this.board.tasks().filter((task) => task.listId === request.id).length;
         this.board.deleteList(request.id);
+        if (list) {
+          const owner = affected === 1 ? 'su' : 'sus';
+          this.showToast(
+            `Lista «${truncateForQuote(list.name)}» y ${owner} ${eliminadasPhrase(affected)}`,
+            { undoable: true },
+          );
+        }
         break;
-      case 'clear-board':
+      }
+      case 'clear-board': {
+        const total = this.board.tasks().length;
         this.board.clearBoard();
+        this.showToast(`Tablero vaciado: ${eliminadasPhrase(total)}`, { undoable: true });
         break;
+      }
     }
   }
 
@@ -495,8 +613,9 @@ export class BoardPage {
   /** Entering or leaving «Completada» moves the card out of sight; the rest is self-evident. */
   private announceStatusChange(from: TaskStatus, to: TaskStatus): void {
     if (from === to) return;
-    if (to === 'done') this.showToast('Tarea completada');
-    else if (from === 'done') this.showToast(`Tarea reabierta en «${STATUS_LABELS[to]}»`);
+    if (to === 'done') this.showToast('Tarea completada', { undoable: true });
+    else if (from === 'done')
+      this.showToast(`Tarea reabierta en «${STATUS_LABELS[to]}»`, { undoable: true });
   }
 
   private flashTask(id: TaskId): void {
@@ -606,6 +725,27 @@ export class BoardPage {
     if (event.key === 'Escape' && document.querySelector('.cdk-drag-preview') !== null) {
       this.dragCancelled = true;
       event.preventDefault();
+      return;
+    }
+
+    const modifierPressed = isMacPlatform() ? event.metaKey : event.ctrlKey;
+
+    // The palette works from anywhere, including inside a text field, but never on
+    // top of another modal dialog — no stacking modal layers.
+    if (modifierPressed && !event.shiftKey && !event.altKey && event.key.toLowerCase() === 'k') {
+      if (!this.anyDialogOpen()) this.paletteOpen.set(true);
+      event.preventDefault();
+      return;
+    }
+
+    // Ctrl+Z inside a text field is the browser's own undo for what's being typed;
+    // outside one (and with no other dialog blocking it), it undoes a board action.
+    if (modifierPressed && !event.altKey && event.key.toLowerCase() === 'z') {
+      if (!isEditableTarget(event.target) && !this.anyDialogOpen()) {
+        if (event.shiftKey) this.redo();
+        else this.undo();
+        event.preventDefault();
+      }
       return;
     }
 

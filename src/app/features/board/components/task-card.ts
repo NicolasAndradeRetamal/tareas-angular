@@ -14,15 +14,9 @@ import type { BadgeVariant } from '../../../shared/ui/badge';
 import { nextDomId } from '../../../shared/ui/dom-id';
 import { Icon } from '../../../shared/ui/icon';
 import { LIST_COLOR_BG_CLASS } from '../../../shared/ui/list-color';
+import { PRIORITY_BAR_CLASS } from '../../../shared/ui/priority-bar';
 import { DueLabelPipe } from '../../../shared/pipes/due-label-pipe';
 import { PriorityLabelPipe } from '../../../shared/pipes/priority-label-pipe';
-
-const PRIORITY_BAR_CLASS: Record<Task['priority'], string> = {
-  low: 'bg-priority-low',
-  medium: 'bg-priority-medium',
-  high: 'bg-priority-high',
-  urgent: 'bg-priority-urgent',
-};
 
 const PRIORITY_STRIPE_CLASS: Record<Task['priority'], string> = {
   low: 'bg-line',

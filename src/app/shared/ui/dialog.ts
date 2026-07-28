@@ -8,7 +8,7 @@ import {
   viewChild,
 } from '@angular/core';
 
-export type DialogSize = 'form' | 'confirm';
+export type DialogSize = 'form' | 'confirm' | 'palette';
 export type DialogRole = 'dialog' | 'alertdialog';
 
 /** Thin wrapper over the native <dialog>: free focus trap, Esc-to-close and focus return. */

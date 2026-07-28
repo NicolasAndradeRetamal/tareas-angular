@@ -11,7 +11,7 @@ export function nowIso(now: Date = new Date()): IsoDateTime {
   return now.toISOString();
 }
 
-export function isOverdue(task: Task, today: IsoDate): boolean {
+export function isOverdue(task: Pick<Task, 'dueDate' | 'status'>, today: IsoDate): boolean {
   return task.dueDate !== null && task.dueDate < today && task.status !== 'done';
 }
 

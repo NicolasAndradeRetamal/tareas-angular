@@ -4,6 +4,7 @@ import { STATUS_LABELS, TASK_STATUSES } from '../models/task';
 import type { Task, TaskPriority } from '../models/task';
 import { isOverdue, todayIso } from '../util/date';
 import { byOrder } from '../util/order';
+import { normalizeText } from '../util/text';
 import { BoardStore } from './board-store';
 
 export type StatusFilter = 'all' | 'pending' | 'completed' | 'overdue';
@@ -19,19 +20,6 @@ export interface BoardCounts {
   readonly pending: number;
   readonly completed: number;
   readonly overdue: number;
-}
-
-const COMBINING_MARK_START = 0x0300;
-const COMBINING_MARK_END = 0x036f;
-
-function normalize(value: string): string {
-  let result = '';
-  for (const char of value.normalize('NFD')) {
-    const code = char.codePointAt(0) ?? 0;
-    if (code >= COMBINING_MARK_START && code <= COMBINING_MARK_END) continue;
-    result += char;
-  }
-  return result.toLowerCase();
 }
 
 @Injectable({ providedIn: 'root' })
@@ -86,7 +74,7 @@ export class BoardViewStore {
 
   readonly visibleTasks = computed(() => {
     const listId = this._activeListId();
-    const query = normalize(this._query().trim());
+    const query = normalizeText(this._query().trim());
     const statusFilter = this._statusFilter();
     const priorityFilter = this._priorityFilter();
     const today = this.today;
@@ -95,7 +83,7 @@ export class BoardViewStore {
       if (listId !== null && task.listId !== listId) return false;
       if (priorityFilter !== null && task.priority !== priorityFilter) return false;
       if (!matchesStatusFilter(task, statusFilter, today)) return false;
-      if (query.length > 0 && !normalize(`${task.title} ${task.description}`).includes(query))
+      if (query.length > 0 && !normalizeText(`${task.title} ${task.description}`).includes(query))
         return false;
       return true;
     });

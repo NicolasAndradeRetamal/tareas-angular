@@ -437,3 +437,232 @@ test.describe('tablero', () => {
     ).toHaveText(primeroDespues);
   });
 });
+
+test.describe('paleta de comandos', () => {
+  test.use({ viewport: VIEWPORTS.escritorio });
+
+  test('Ctrl+K la abre desde cualquier sitio, incluso con el buscador enfocado', async ({
+    page,
+  }) => {
+    await irA(page, '/tablero');
+    await page.locator('.topbar__search-input').click();
+
+    await page.keyboard.press('Control+K');
+
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await expect(paleta).toBeVisible();
+    await expect(paleta.locator('.cmdpalette__input')).toBeFocused();
+  });
+
+  test('Esc la cierra y devuelve el foco a donde estaba', async ({ page }) => {
+    await irA(page, '/tablero');
+    const disparador = page.getByRole('button', { name: /^comandos$/i });
+    await disparador.focus();
+    await page.keyboard.press('Enter');
+
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await expect(paleta).toBeVisible();
+
+    await page.keyboard.press('Escape');
+    await expect(paleta).toBeHidden();
+    await expect(disparador).toBeFocused();
+  });
+
+  test('filtra mientras se escribe y salta a la tarea con Enter', async ({ page }) => {
+    await irA(page, '/tablero');
+    const tarjeta = page.locator('.task-card').first();
+    const titulo = (await tarjeta.locator('h3').innerText()).trim();
+
+    await page.keyboard.press('Control+K');
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    // "Crear la tarea…" también contiene cualquier subcadena de la consulta.
+    await paleta.locator('.cmdpalette__input').fill(titulo);
+
+    const fila = paleta
+      .locator('[role="option"]')
+      .filter({ hasText: titulo })
+      .filter({ hasNotText: 'Crear la tarea' });
+    await expect(fila).toBeVisible();
+    await fila.click();
+
+    await expect(paleta).toBeHidden();
+    const detalle = page.locator('[role="dialog"]:visible').first();
+    await expect(detalle).toContainText(titulo);
+  });
+
+  test('Ctrl+Enter completa la tarea resaltada sin cerrar la paleta', async ({ page }) => {
+    await irA(page, '/tablero');
+    const pendiente = page.locator('.task-card:not(.task-card--done)').first();
+    const titulo = (await pendiente.locator('h3').innerText()).trim();
+
+    await page.keyboard.press('Control+K');
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await paleta.locator('.cmdpalette__input').fill(titulo.slice(0, 8));
+    await page.waitForTimeout(50);
+
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Control+Enter');
+
+    await expect(paleta).toBeVisible();
+    const aviso = page.getByRole('status').filter({ hasText: 'Tarea completada' });
+    await expect(aviso).toBeVisible();
+  });
+
+  test('crea una tarea con el texto escrito cuando nada coincide', async ({ page }) => {
+    await irA(page, '/tablero');
+    const titulo = `Tarea nueva ${Date.now()}`;
+
+    await page.keyboard.press('Control+K');
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await paleta.locator('.cmdpalette__input').fill(titulo);
+    await expect(paleta.getByRole('option').first()).toContainText(titulo);
+    await page.keyboard.press('Enter');
+
+    const formulario = page.locator('[role="dialog"]:visible').first();
+    await expect(formulario.locator('#task-title')).toHaveValue(titulo);
+  });
+
+  test('cambia de lista y de tema desde la paleta', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    await page.keyboard.press('Control+K');
+    let paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await paleta.locator('.cmdpalette__input').fill('trabajo');
+    // "Crear la tarea "trabajo"" también contiene la palabra: se excluye por texto.
+    await paleta
+      .locator('[role="option"]')
+      .filter({ hasText: 'Trabajo' })
+      .filter({ hasNotText: 'Crear la tarea' })
+      .click();
+    await expect(page.locator('h1, h2').filter({ hasText: 'Trabajo' })).toBeVisible();
+
+    const temaAntes = await page.evaluate(() =>
+      document.documentElement.classList.contains('dark'),
+    );
+    await page.keyboard.press('Control+K');
+    paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await paleta.locator('.cmdpalette__input').fill('tema');
+    await paleta.getByRole('option', { name: /cambiar a tema/i }).click();
+    await expect
+      .poll(() => page.evaluate(() => document.documentElement.classList.contains('dark')))
+      .not.toBe(temaAntes);
+  });
+});
+
+test.describe('deshacer y rehacer', () => {
+  test.use({ viewport: VIEWPORTS.escritorio });
+
+  test('Ctrl+Z deshace y Ctrl+Shift+Z rehace, con un aviso que nombra la acción', async ({
+    page,
+  }) => {
+    await irA(page, '/tablero');
+    const antes = await page.locator('.task-card').count();
+
+    await page
+      .getByRole('button', { name: /nueva tarea/i })
+      .first()
+      .click();
+    const formulario = page.locator('[role="dialog"]:visible').first();
+    await formulario.locator('#task-title').fill('Tarea para deshacer');
+    await formulario.getByRole('button', { name: /crear tarea/i }).click();
+    await expect(page.locator('.task-card')).toHaveCount(antes + 1);
+
+    await page.keyboard.press('Control+Z');
+    await expect(page.getByRole('status').filter({ hasText: 'Se deshizo' })).toBeVisible();
+    await expect(page.locator('.task-card')).toHaveCount(antes);
+
+    await page.keyboard.press('Control+Shift+Z');
+    await expect(page.getByRole('status').filter({ hasText: 'Se rehizo' })).toBeVisible();
+    await expect(page.locator('.task-card')).toHaveCount(antes + 1);
+  });
+
+  test('los botones de deshacer y rehacer reflejan la disponibilidad del historial', async ({
+    page,
+  }) => {
+    await irA(page, '/tablero');
+
+    // Ámbito a la barra: el aviso de completar también añade un botón «Deshacer».
+    const historial = page.locator('[data-menu="history"]');
+    const deshacer = historial.getByRole('button', { name: /^deshacer$/i });
+    const rehacer = historial.getByRole('button', { name: /^rehacer$/i });
+    await expect(deshacer).toBeDisabled();
+    await expect(rehacer).toBeDisabled();
+
+    const pendiente = page.locator('.task-card:not(.task-card--done)').first();
+    await pendiente.locator('.task-card__menu-trigger').click();
+    await page.getByRole('menuitem', { name: /^completar$/i }).click();
+
+    await expect(deshacer).toBeEnabled();
+    await deshacer.click();
+    await expect(rehacer).toBeEnabled();
+  });
+
+  test('eliminar una tarea avisa con «Deshacer» y la trae de vuelta', async ({ page }) => {
+    await irA(page, '/tablero');
+    const antes = await page.locator('.task-card').count();
+    const tarjeta = page.locator('.task-card').first();
+    const titulo = (await tarjeta.locator('h3').innerText()).trim();
+
+    await tarjeta.locator('.task-card__menu-trigger').click();
+    await page.getByRole('menuitem', { name: /eliminar/i }).click();
+    await page.getByRole('button', { name: /eliminar la tarea/i }).click();
+    await expect(page.locator('.task-card')).toHaveCount(antes - 1);
+
+    const aviso = page.getByRole('status').filter({ hasText: 'eliminada' });
+    await expect(aviso).toBeVisible();
+    await aviso.getByRole('button', { name: /deshacer/i }).click();
+
+    await expect(page.locator('.task-card')).toHaveCount(antes);
+    await expect(page.locator('.task-card', { hasText: titulo })).toHaveCount(1);
+  });
+});
+
+test.describe('hoja de atajos', () => {
+  test.use({ viewport: VIEWPORTS.escritorio });
+
+  test('lista los atajos nuevos de la paleta y del historial', async ({ page }) => {
+    await irA(page, '/tablero');
+    await page.keyboard.press('?');
+
+    const hoja = page.locator('[role="dialog"]:visible').first();
+    await expect(hoja).toContainText('Abrir la paleta de comandos');
+    await expect(hoja).toContainText('Deshacer');
+    await expect(hoja).toContainText('Rehacer');
+  });
+});
+
+test.describe('paleta de comandos y menú — móvil', () => {
+  test.use({ viewport: VIEWPORTS.movil, hasTouch: true, isMobile: true });
+
+  test('en el menú «Más acciones», Deshacer y Rehacer son las dos primeras filas', async ({
+    page,
+  }) => {
+    // DESIGN §10.20: "En móvil no ocupan la barra: son las dos primeras filas del menú ⋯".
+    await irA(page, '/tablero');
+    await page.getByRole('button', { name: /más acciones/i }).click();
+    const filas = await page.locator('[role="menu"] [role="menuitem"]').allInnerTexts();
+    expect(filas[0], `primera fila del menú: «${filas[0]}»`).toMatch(/^Deshacer/);
+    expect(filas[1], `segunda fila del menú: «${filas[1]}»`).toMatch(/^Rehacer/);
+  });
+
+  test('el título de una tarea con fecha límite no se recorta a un par de letras', async ({
+    page,
+  }) => {
+    // Con contexto (estado · lista) y cápsula de fecha a la vez, el título debe
+    // seguir teniendo espacio razonable en el ancho de un teléfono.
+    await irA(page, '/tablero');
+    await page.getByRole('button', { name: /más acciones/i }).click();
+    await page.getByRole('menuitem', { name: /^comandos$/i }).click();
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await paleta.waitFor({ state: 'visible' });
+    await paleta.locator('.cmdpalette__input').fill('informe');
+    const fila = paleta
+      .locator('[role="option"]')
+      .filter({ hasText: 'Vence hoy' })
+      .filter({ hasNotText: 'Crear la tarea' })
+      .first();
+    await expect(fila).toBeVisible();
+    const caja = await fila.locator('.cmdpalette__label').boundingBox();
+    expect(caja!.width, 'el título de la fila queda casi sin espacio en móvil').toBeGreaterThan(80);
+  });
+});

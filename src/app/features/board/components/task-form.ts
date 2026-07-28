@@ -20,6 +20,7 @@ import {
   TASK_TITLE_MAX_LENGTH,
 } from '../../../core/models/task';
 import type { Task, TaskId, TaskPriority, TaskStatus } from '../../../core/models/task';
+import { modifierKeyLabel } from '../../../core/util/platform';
 import { nonBlank } from '../../../core/util/validators';
 import { PriorityLabelPipe } from '../../../shared/pipes/priority-label-pipe';
 import { Button } from '../../../shared/ui/button';
@@ -48,6 +49,8 @@ export class TaskForm {
   readonly lists = input.required<readonly List[]>();
   readonly defaultListId = input<ListId | null>(null);
   readonly defaultStatus = input<TaskStatus>('todo');
+  /** Preset for a new task's title, e.g. what the user typed in the command palette. */
+  readonly defaultTitle = input('');
 
   readonly create = output<CreateTaskInput>();
   readonly update = output<{ id: TaskId; changes: UpdateTaskInput }>();
@@ -63,6 +66,7 @@ export class TaskForm {
   protected readonly descriptionCounterThreshold = DESCRIPTION_COUNTER_THRESHOLD;
   protected readonly priorityWeight = PRIORITY_WEIGHT;
   protected readonly titleId = nextDomId('task-form-title');
+  protected readonly modKey = modifierKeyLabel();
 
   protected readonly form = this.fb.nonNullable.group({
     title: ['', [nonBlank, Validators.maxLength(TASK_TITLE_MAX_LENGTH)]],
@@ -158,7 +162,7 @@ export class TaskForm {
       });
     } else {
       this.form.reset({
-        title: '',
+        title: this.defaultTitle(),
         description: '',
         priority: 'medium',
         status: this.defaultStatus(),
