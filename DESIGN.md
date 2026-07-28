@@ -907,9 +907,9 @@ contador de caracteres opcional a la derecha del texto de ayuda.
 | Inválido | Borde `danger`, icono de aviso de 16 px dentro del campo a la derecha, mensaje en `danger` debajo con el mismo icono, `aria-invalid="true"` y `aria-describedby` al mensaje |
 | Solo lectura | Sin borde, fondo transparente, texto `ink` |
 
-La validación se muestra **al salir del campo** y se actualiza al escribir una
-vez mostrada. Nunca se marca en rojo un campo que el usuario todavía no ha
-tocado. El contador de caracteres aparece a partir del 80 % del máximo y pasa a
+La validación se muestra **al intentar enviar** y, a partir de ahí, se actualiza
+al escribir. Nunca se marca en rojo un campo que el usuario todavía no ha
+terminado: salir de un campo vacío no es un error, es no haber llegado aún. El contador de caracteres aparece a partir del 80 % del máximo y pasa a
 `danger` al superarlo.
 
 **Área de texto**: mismas reglas, altura mínima de 3 líneas, redimensionable solo
@@ -1050,8 +1050,9 @@ en el velo o deslizamiento.
 - Rótulo «Listas» en versalitas de 11 px `ink-subtle`.
 - Fila «Todas las tareas» (icono de bandeja) siempre primera.
 - Cada fila: punto de color de 8 px · nombre · contador a la derecha en
-  `ink-subtle` · menú `⋯` al hacer hover o al enfocar (Renombrar, Cambiar color
-  ›, divisor, Eliminar en peligro sutil).
+  `ink-subtle` · menú `⋯` al hacer hover o al enfocar (Renombrar o cambiar el
+  color, divisor, Eliminar en peligro sutil). Nombre y color se editan en el
+  mismo diálogo: son dos campos, no merecen dos caminos.
 - Altura de fila 36 px en escritorio, 44 px en móvil; radio `sm`.
 - **Activa**: fondo `primary-soft`, barra izquierda de 3 px `primary`, texto
   peso 500, `aria-current="page"`. Es selección, no foco (§7.2).
@@ -1354,12 +1355,21 @@ editar, aparece además en el pie a la izquierda «Eliminar» en peligro sutil.
 Bajo el pie, en `text-2xs` `ink-subtle`: «Creada el 12 jul 2026 · Editada hace
 2 h» — con año, siempre.
 
-Este diálogo **es** el detalle de la tarea: abrir una tarjeta (K9) lo abre en
-modo edición con sus valores cargados y el foco en el título. No hay una segunda
-pantalla de solo lectura. El título y la descripción se rigen por §10.18: el
-texto se parte, respeta el relleno y jamás produce desplazamiento horizontal
-dentro del panel; si la descripción es larga, el que se desplaza es el cuerpo del
-diálogo, en vertical.
+**Detalle de la tarea**, 520 px: abrir una tarjeta (K9) muestra primero el
+detalle, no el formulario. Es una lectura cómoda —descripción íntegra, estado,
+prioridad, lista, fecha límite y marcas de tiempo— con las acciones al pie:
+«Eliminar», «Duplicar», «Completar»/«Reabrir» y «Editar», que abre este mismo
+diálogo en modo edición.
+
+Se separa la lectura de la edición porque son dos intenciones distintas y la
+frecuente es leer: abrir una tarjeta para consultar un detalle no debería dejar
+al usuario dentro de un formulario con el texto seleccionado y el riesgo de
+cambiarlo sin querer. Es lo que hacen Trello y Jira, donde la tarjeta abre una
+ficha y cada campo se edita al pulsarlo.
+
+El título y la descripción se rigen por §10.18: el texto se parte, respeta el
+relleno y jamás produce desplazamiento horizontal dentro del panel; si la
+descripción es larga, el que se desplaza es el cuerpo del diálogo, en vertical.
 
 **Lista (crear/renombrar)**, 420 px: nombre (1–60) y selector de color con seis
 muestras de 28 px, marcadas con verificación y nombre accesible («Color azul»).

@@ -283,6 +283,85 @@ test.describe('tablero', () => {
     ).toHaveCount(1);
   });
 
+  test('soltar fuera de las columnas no mueve nada', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    const origen = page.locator('.task-column').first();
+    const tarjeta = origen.locator('.task-card').first();
+    const titulo = (await tarjeta.locator('h3').innerText()).trim();
+    const cajaAsa = await tarjeta.locator('.task-card__handle').boundingBox();
+    const barra = await page.locator('.topbar').boundingBox();
+
+    await page.mouse.move(cajaAsa!.x + cajaAsa!.width / 2, cajaAsa!.y + cajaAsa!.height / 2);
+    await page.mouse.down();
+    // Hacia arriba, sobre la barra superior: no es una columna.
+    await page.mouse.move(barra!.x + barra!.width / 2, barra!.y + barra!.height / 2, { steps: 25 });
+    await page.mouse.up();
+
+    await expect(origen.locator('.task-card', { hasText: titulo })).toHaveCount(1);
+    await expect(page.locator('.task-column--drop-target')).toHaveCount(0);
+  });
+
+  test('«Esc» durante el arrastre cancela el movimiento', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    const origen = page.locator('.task-column').first();
+    const destino = page.locator('.task-column').nth(1);
+    const tarjeta = origen.locator('.task-card').first();
+    const titulo = (await tarjeta.locator('h3').innerText()).trim();
+
+    const cajaAsa = await tarjeta.locator('.task-card__handle').boundingBox();
+    const cajaDestino = await destino.locator('.task-column__body').boundingBox();
+
+    await page.mouse.move(cajaAsa!.x + cajaAsa!.width / 2, cajaAsa!.y + cajaAsa!.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(cajaDestino!.x + cajaDestino!.width / 2, cajaDestino!.y + 20, {
+      steps: 25,
+    });
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+
+    await expect(origen.locator('.task-card', { hasText: titulo })).toHaveCount(1);
+    await expect(destino.locator('.task-card', { hasText: titulo })).toHaveCount(0);
+  });
+
+  test('«Espacio» sobre una tarjeta avisa igual que el menú', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    const tarjeta = page.locator('.task-card:not(.task-card--done)').first();
+    await tarjeta.focus();
+    await page.keyboard.press(' ');
+
+    await expect(page.getByRole('status').filter({ hasText: 'Tarea completada' })).toBeVisible();
+  });
+
+  test('cambiar el color de una lista lo guarda', async ({ page }) => {
+    await irA(page, '/tablero');
+
+    // La primera fila es «Todas las tareas», que no es una lista y no tiene menú.
+    const fila = page
+      .locator('.sidebar li')
+      .filter({ has: page.locator('.list-row__menu-trigger') })
+      .first();
+    await fila.hover();
+    await fila.locator('.list-row__menu-trigger').click();
+    await page.getByRole('menuitem', { name: /renombrar/i }).click();
+
+    const dialogo = page.locator('[role="dialog"]:visible').first();
+    // El quinto color de la paleta es «rose».
+    await dialogo.locator('.color-picker__option').nth(4).click();
+    await dialogo.getByRole('button', { name: /guardar/i }).click();
+    await expect(dialogo).toBeHidden();
+
+    await page.reload({ waitUntil: 'networkidle' });
+    const guardado = await page.evaluate(() => {
+      const raw = localStorage.getItem('tareas-angular:board');
+      const doc = raw ? (JSON.parse(raw) as { lists: { color: string }[] }) : null;
+      return doc?.lists[0]?.color ?? null;
+    });
+    expect(guardado, 'el color elegido debe persistir').toBe('rose');
+  });
+
   test('arrastrar hasta «Completada» avisa y permite deshacer', async ({ page }) => {
     await irA(page, '/tablero');
 
