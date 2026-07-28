@@ -630,3 +630,39 @@ test.describe('hoja de atajos', () => {
     await expect(hoja).toContainText('Rehacer');
   });
 });
+
+test.describe('paleta de comandos y menú — móvil', () => {
+  test.use({ viewport: VIEWPORTS.movil, hasTouch: true, isMobile: true });
+
+  test('en el menú «Más acciones», Deshacer y Rehacer son las dos primeras filas', async ({
+    page,
+  }) => {
+    // DESIGN §10.20: "En móvil no ocupan la barra: son las dos primeras filas del menú ⋯".
+    await irA(page, '/tablero');
+    await page.getByRole('button', { name: /más acciones/i }).click();
+    const filas = await page.locator('[role="menu"] [role="menuitem"]').allInnerTexts();
+    expect(filas[0], `primera fila del menú: «${filas[0]}»`).toMatch(/^Deshacer/);
+    expect(filas[1], `segunda fila del menú: «${filas[1]}»`).toMatch(/^Rehacer/);
+  });
+
+  test('el título de una tarea con fecha límite no se recorta a un par de letras', async ({
+    page,
+  }) => {
+    // Con contexto (estado · lista) y cápsula de fecha a la vez, el título debe
+    // seguir teniendo espacio razonable en el ancho de un teléfono.
+    await irA(page, '/tablero');
+    await page.getByRole('button', { name: /más acciones/i }).click();
+    await page.getByRole('menuitem', { name: /^comandos$/i }).click();
+    const paleta = page.getByRole('dialog', { name: /paleta de comandos/i });
+    await paleta.waitFor({ state: 'visible' });
+    await paleta.locator('.cmdpalette__input').fill('informe');
+    const fila = paleta
+      .locator('[role="option"]')
+      .filter({ hasText: 'Vence hoy' })
+      .filter({ hasNotText: 'Crear la tarea' })
+      .first();
+    await expect(fila).toBeVisible();
+    const caja = await fila.locator('.cmdpalette__label').boundingBox();
+    expect(caja!.width, 'el título de la fila queda casi sin espacio en móvil').toBeGreaterThan(80);
+  });
+});
