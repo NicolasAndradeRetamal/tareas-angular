@@ -153,7 +153,7 @@
         <app-button variant="secondary" type="button" (clicked)="closed.emit()"
           >Cancelar</app-button
         >
-        <app-button variant="primary" type="submit" title="Guardar (Ctrl + Enter)">
+        <app-button variant="primary" type="submit" [title]="'Guardar (' + modKey + ' Enter)'">
           {{ isEdit ? 'Guardar cambios' : 'Crear tarea' }}
         </app-button>
       </div>
