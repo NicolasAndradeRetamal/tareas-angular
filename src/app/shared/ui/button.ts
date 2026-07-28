@@ -17,5 +17,7 @@ export class Button {
   readonly type = input<'button' | 'submit'>('button');
   readonly disabled = input(false);
   readonly disabledReason = input<string | null>(null);
+  /** Forwarded to the native button so Dialog's shared initial-focus logic can find it. */
+  readonly autofocus = input(false);
   readonly clicked = output<void>();
 }
