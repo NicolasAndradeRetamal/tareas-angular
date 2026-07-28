@@ -146,15 +146,6 @@
               type="button"
               role="menuitem"
               class="menu__item md:hidden"
-              (click)="overflowMenuOpen.set(false); paletteOpen.set(true)"
-            >
-              <app-icon name="command" [size]="16" />
-              Comandos
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              class="menu__item md:hidden"
               [disabled]="undoLabel() === null"
               (click)="overflowMenuOpen.set(false); undo()"
             >
@@ -172,6 +163,15 @@
               {{ redoLabel() ? 'Rehacer: ' + redoLabel() : 'Rehacer' }}
             </button>
             <div class="menu__divider" role="separator"></div>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu__item md:hidden"
+              (click)="overflowMenuOpen.set(false); paletteOpen.set(true)"
+            >
+              <app-icon name="command" [size]="16" />
+              Comandos
+            </button>
             <button
               type="button"
               role="menuitem"
