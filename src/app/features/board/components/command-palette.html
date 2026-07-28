@@ -1,4 +1,10 @@
-<app-dialog [open]="open()" size="palette" [labelledBy]="titleId" (closed)="closed.emit()">
+<app-dialog
+  [open]="open()"
+  size="palette"
+  [labelledBy]="titleId"
+  (closed)="closed.emit()"
+  (closing)="closing.emit()"
+>
   <h2 [id]="titleId" class="sr-only">Paleta de comandos</h2>
 
   <div class="cmdpalette__header">
@@ -6,6 +12,7 @@
     <input
       #queryInput
       type="text"
+      autofocus
       class="cmdpalette__input"
       autocomplete="off"
       spellcheck="false"

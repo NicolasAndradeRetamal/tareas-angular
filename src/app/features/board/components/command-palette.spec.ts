@@ -131,9 +131,13 @@ describe('CommandPalette', () => {
     component.closed.subscribe(() => (closed = true));
     component.toggleTaskDone.subscribe((id) => (toggled = id));
 
-    // The task row is not first (Acciones/Ir a lead); reach it, then complete it.
-    const total = rows().length;
-    for (let i = 0; i < total - 1; i += 1) press('ArrowDown');
+    // Locate the task row by its title rather than assuming a position: Acciones
+    // leads and a trailing "view all" row now always follows a task match.
+    const taskIndex = Array.from(rows()).findIndex((row) =>
+      row.textContent?.includes('Preparar el informe semanal'),
+    );
+    expect(taskIndex).toBeGreaterThan(-1);
+    for (let i = 0; i < taskIndex; i += 1) press('ArrowDown');
     press('Enter', { ctrlKey: true });
 
     expect(toggled).toBe('t1');

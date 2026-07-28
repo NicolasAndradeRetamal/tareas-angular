@@ -147,7 +147,7 @@ de partida, uno por uno. La especificación resultante es §10.19.
 
 | # | Convención | Veredicto sobre el boceto de partida |
 |---|---|---|
-| P1 | Se abre con `Ctrl`+`K` desde cualquier punto y también desde un disparador visible: no es una función secreta | **Parcial → corregido.** El disparador existía, pero llevaba una lupa —indistinguible del buscador que ya hay en la barra— y las teclas estampadas dentro del botón, contra §7.5. Ahora tiene icono propio, etiqueta «Comandos» y las teclas en el título emergente |
+| P1 | Se abre con `Ctrl`+`K` desde cualquier punto y también desde un disparador visible: no es una función secreta | **No cumplía → corregido.** El disparador visible se resolvió primero como un botón «Comandos» junto al buscador, y eran dos controles contiguos para la misma intención. Ya no hay botón aparte: el disparador **es** el buscador de la barra (§10.3), que abre la paleta al recibir el foco y muestra las teclas `Ctrl` `K` dentro del propio campo |
 | P2 | El campo recibe el foco al abrir y todo se escribe ahí; no hay ningún otro sitio donde escribir | Cumple |
 | P3 | La coincidencia es difusa y filtra con cada pulsación, sin botón de buscar, y se ve qué parte del texto coincidió | **No cumplía → corregido.** El boceto no decía cómo se busca. Se fija coincidencia por subsecuencia sin acentos, orden por calidad de coincidencia y realce de las letras acertadas |
 | P4 | Los resultados van agrupados por tipo, con el rótulo del grupo a la vista | **Parcial → corregido.** Los grupos eran cuatro y dos de ellos —«Listas» e «Ir a»— significaban lo mismo. Quedan tres: Acciones, Ir a y Tareas |
@@ -595,6 +595,13 @@ estrictas que el resto del sistema.
   `outline-offset: 2px`. Se declara una vez en la capa base sobre `:focus-visible`
   y no se sobrescribe salvo para ajustar el desplazamiento en elementos pegados a
   un borde.
+- **Una única excepción, y es puntual**: el campo de la paleta de comandos. Se
+  autoenfoca al abrir —quien abre un lanzador quiere escribir de inmediato— y el
+  anillo quedaba dibujado justo por dentro del borde del panel, dos marcos
+  concéntricos para un solo control. Ese campo usa un tratamiento propio, un
+  cambio de borde (§10.19). No se generaliza: el resto de la aplicación mantiene
+  el anillo, incluida la **fila resaltada** de la propia paleta, que conserva su
+  indicador completo de §10.19 (fondo, barra izquierda y peso).
 - Se usa `:focus-visible`, no `:focus`: hacer clic en una tarjeta no dibuja el
   anillo; llegar con `Tab` o con las flechas, sí.
 - **Nunca `outline: none`** sin sustituto. Si un contenedor recorta el anillo, se
@@ -621,8 +628,12 @@ en las opciones de tema.
 
 ### 7.3 Navegación del tablero
 
-- **Orden de tabulación** del documento: enlace de salto → marca → buscador →
-  acciones de la barra → cajón/panel de listas → filtros → tablero → avisos.
+- **Orden de tabulación** del documento: enlace de salto → marca → disparador de
+  búsqueda y comandos → acciones de la barra → cajón/panel de listas → filtros →
+  tablero → avisos. Llegar con `Tab` al disparador **abre la paleta** (§10.3);
+  `Esc` la cierra y devuelve el foco al disparador sin reabrirla, de modo que el
+  siguiente `Tab` continúa por la barra: recorrerla con el teclado nunca queda
+  atrapado.
 - Dentro del tablero se usa **tabulación por grupos (roving tabindex)**: el
   tablero entero es **una sola parada de `Tab`**. Al entrar, el foco cae en la
   primera tarjeta de la primera columna no vacía; al volver a entrar, en la
@@ -654,7 +665,7 @@ existen, así que entran también en la hoja de atajos.
 
 | Atajo | Acción | Ámbito | Fase |
 |---|---|---|---|
-| `/` | Enfocar el buscador | Global | 1 |
+| `/` | Abrir la paleta de comandos para buscar | Global | 1 |
 | `N` | Nueva tarea | Global | 1 |
 | `L` | Nueva lista | Global | 1 |
 | `?` | Abrir la hoja de atajos | Global | 1 |
@@ -662,7 +673,7 @@ existen, así que entran también en la hoja de atajos.
 | `Ctrl`+`K` | Abrir la paleta de comandos | Global | 1 |
 | `Ctrl`+`Z` | Deshacer la última acción | Global | 1 |
 | `Ctrl`+`Shift`+`Z` | Rehacer la última acción deshecha | Global | 1 |
-| `Esc` | Cerrar diálogo, paleta, menú o cajón; con el buscador enfocado, vaciarlo | Global | 1 |
+| `Esc` | Cerrar diálogo, paleta, menú o cajón | Global | 1 |
 | `↑` `↓` `←` `→` | Navegar entre tarjetas y columnas | Tablero | 1 |
 | `Enter` | Abrir el detalle de la tarea enfocada | Tablero | 1 |
 | `Espacio` | Completar o reabrir la tarea enfocada | Tablero | 1 |
@@ -676,6 +687,12 @@ existen, así que entran también en la hoja de atajos.
 
 Reglas de comportamiento:
 
+- **`/` y `Ctrl`+`K` llevan al mismo sitio** desde que buscar y ejecutar
+  comparten punto de entrada (§10.3): `/` es la costumbre de las aplicaciones
+  web y `Ctrl`+`K` la de los lanzadores, y se mantienen las dos porque cada
+  usuario llega con una en los dedos. La paleta se abre igual y el campo queda
+  listo para escribir. `Esc` ya no vacía la búsqueda: eso lo hace el botón de
+  limpiar del propio disparador.
 - Los atajos de una sola tecla **se ignoran mientras el foco está en un campo de
   texto** o hay un diálogo modal abierto (salvo `Esc` y `Ctrl`+`Enter`).
 - Los atajos con modificador **sí funcionan dentro de un campo de texto**, con
@@ -703,6 +720,11 @@ Reglas de comportamiento:
   - En los **títulos emergentes** de los controles: «Nueva tarea (N)». Es el
     lugar donde se recuerdan, justo sobre el control al que pertenecen.
   - En las **filas de menú**, alineados a la derecha en `ink-subtle`.
+  - En el **disparador de búsqueda y comandos** (§10.3), en su ranura derecha.
+    Es la excepción reconocida a la regla siguiente, y solo esa: el control
+    tiene forma de campo, no de botón de acción, y en esa ranura la tecla es
+    justo lo que buscan quienes lo miran para preguntarse cómo se abre la
+    paleta. Es lo que hacen Linear, Notion, GitHub y Slack en su buscador.
 - **Nunca estampados dentro de un botón.** Una tecla incrustada en la etiqueta
   compite con ella por la atención, ensancha el control y no aporta nada a quien
   usa el ratón —que es quien está leyendo el botón—. Quien usa el teclado no
@@ -967,22 +989,53 @@ terminado: salir de un campo vacío no es un error, es no haber llegado aún. El
 en vertical. **Selector de fecha**: `<input type="date">` nativo con
 `color-scheme` heredado, más un botón sutil «Quitar fecha» cuando hay valor.
 
-### 10.3 Buscador
+### 10.3 Disparador de búsqueda y comandos
 
-**Anatomía**: lupa de 20 px a la izquierda en `ink-subtle` · campo · a la
-derecha, la tecla `/` en reposo o un botón de icono «Limpiar búsqueda» (20 px)
-cuando hay texto.
+Buscar y ejecutar comparten **un único punto de entrada**, como en Linear y en
+Notion. **No es un campo editable**: es un botón con forma de campo que abre la
+paleta (§10.19), y se escribe allí dentro. Aquí no se filtra el tablero letra a
+letra; la búsqueda llega al tablero desde la paleta.
 
-- Ancho: completo en móvil; en escritorio ocupa 320 px y crece hasta 420 px al
-  enfocarse. El crecimiento se resuelve con `flex-grow` y no animando `width`.
-- Escribir dispara la búsqueda con 200 ms de espera; el resultado se refleja en
-  el resumen del tablero: «5 de 12 tareas coinciden con “informe”».
-- El resumen es una región activa `polite`, para que un lector de pantalla lo
-  anuncie sin interrumpir la escritura.
-- `Esc` con el campo enfocado vacía la búsqueda; si ya está vacío, devuelve el
-  foco al tablero.
-- Estados: los del campo de texto, más **sin resultados**, que no cambia el
-  aspecto del buscador sino que pinta el estado vacío correspondiente (§12.4).
+**Anatomía** (barra de escritorio; en móvil, ver el último punto): marco de campo
+—fondo `field`, borde 1 px `line-strong`, radio `sm`, alto 36 px (44 en táctil),
+relleno lateral 10 px— con lupa de 20 px
+`ink-subtle` a la izquierda · etiqueta · ranura derecha con `Ctrl` `K` en `kbd`
+(`⌘` `K` en macOS; no se pinta en táctil) o con el botón de limpiar. Ancho fijo
+de 320 px en escritorio: ya no crece al enfocarse, porque el foco no se queda
+aquí.
+
+| Estado | Aspecto y contenido |
+|---|---|
+| Reposo, sin búsqueda | Etiqueta «Buscar o ejecutar…» en `ink-subtle`; a la derecha, las teclas en `kbd` |
+| Reposo, con búsqueda activa | Fondo `primary-soft`, borde `primary`, la consulta como etiqueta en `ink` peso 500 y entre comillas, recortada a una línea (§10.18); a la derecha, en lugar del `kbd`, el botón de icono `×` de 20 px «Limpiar la búsqueda» (44×44 táctil). Es el mismo lenguaje del filtro de prioridad activo (§10.4), así que la barra se lee de un vistazo: hay algo aplicado |
+| Hover | Borde `ink-subtle`; con búsqueda activa, velo `hover` sobre `primary-soft` |
+| Foco | **Abre la paleta.** El anillo global (§7.1) se dibuja igualmente: es lo que se ve en el instante previo y al volver de la paleta |
+| Activo (pulsado) | Velo `press` durante 90 ms, antes de que suba la paleta |
+| Deshabilitado / cargando | No existen: siempre se puede buscar, y el filtrado es síncrono |
+
+- **Se abre al recibir el foco** por clic, por `Tab`, con `Enter`/`Espacio` o con
+  los atajos `/` y `Ctrl`+`K`. En cambio, el foco que le **devuelve** la paleta
+  al cerrarse no la reabre: la apertura la dispara la interacción del usuario, no
+  el foco restablecido por programa. Sin esa distinción, cerrar sería imposible.
+- La **búsqueda activa** se aplica desde la paleta, con la fila «Ver los {n}
+  resultados en el tablero» (singular con una sola coincidencia: «Ver 1
+  resultado en el tablero») (§10.19), y se retira desde el botón de limpiar o
+  desde «Limpiar filtros» (§10.4). Al limpiar, el foco se queda en el disparador
+  —sin reabrir la paleta— y el resumen del tablero vuelve a su forma sin
+  búsqueda.
+- El resultado se refleja siempre en el **resumen del tablero**: «5 de 12 tareas
+  coinciden con “informe”», región activa `polite`, para que el cambio también se
+  anuncie. Sin resultados, el tablero pinta el estado vacío de §12.4.
+- **Roles y nombre accesible**: `<button>` con `aria-haspopup="dialog"`,
+  `aria-expanded` según esté la paleta abierta y `aria-keyshortcuts="Control+K"`.
+  Nombre accesible «Buscar o ejecutar un comando» y, con búsqueda activa,
+  «Buscar o ejecutar un comando. Búsqueda activa: informe». El botón de limpiar
+  es un `<button>` **hermano** dentro del mismo marco, nunca anidado dentro del
+  disparador —un botón dentro de otro no es HTML válido—, con `aria-label`
+  «Limpiar la búsqueda».
+- **En móvil** el disparador es el botón de solo icono de la barra (§10.7), que
+  abre la misma paleta; con búsqueda activa el icono lleva un punto `primary` de
+  6 px arriba a la derecha y su nombre accesible cita la consulta.
 
 ### 10.4 Filtros
 
@@ -1078,24 +1131,25 @@ Altura 56 px en móvil, 60 px desde `md`. Fondo `surface`, borde inferior `line`
 pegajosa; al desplazar la página gana `shadow-sm` (transición 150 ms).
 
 **Móvil** (de izquierda a derecha): botón de icono «Abrir listas» (hamburguesa) ·
-marca «Tareas» · botón de icono «Buscar» (abre el buscador a pantalla completa
-sobre la barra) · botón de icono «Nueva tarea» · menú `⋯`.
+marca «Tareas» · botón de icono «Buscar o ejecutar» (abre la paleta, §10.3) ·
+botón de icono «Nueva tarea» · menú `⋯`.
 
 **Escritorio (`md`+)**: marca «Tareas» + nombre de la lista activa · grupo de
-**deshacer y rehacer** (§10.20) · buscador centrado · botón secundario
-**«Comandos»** (§10.19) · a la derecha: botón primario «Nueva tarea» ·
-conmutador de tema · botón de icono «Atajos de teclado» (`?`) · menú `⋯`.
+**deshacer y rehacer** (§10.20) · **disparador de búsqueda y comandos** centrado
+(§10.3) · a la derecha: botón primario «Nueva tarea» · conmutador de tema ·
+botón de icono «Atajos de teclado» (`?`) · menú `⋯`.
 
-El grupo de deshacer/rehacer va pegado al buscador por la izquierda, separado de
-la marca por 12 px; «Comandos» queda inmediatamente a la derecha del buscador,
-porque las tres cosas son formas de llegar a algo y se leen juntas.
+El grupo de deshacer/rehacer va pegado al disparador por la izquierda, separado
+de la marca por 12 px: las dos cosas son formas de volver o de llegar a algo y se
+leen juntas. **No hay un botón «Comandos» aparte**: la paleta se abre desde el
+propio disparador de búsqueda (§10.19).
 
 El menú `⋯` agrupa lo que no cabe. En escritorio: «Atajos de teclado», «Acerca de
 tus datos», divisor, y «Vaciar el tablero» en peligro sutil, **siempre separada
 del resto por un divisor** por ser destructiva. **En móvil el menú encabeza con
-«Deshacer», «Rehacer» y «Comandos»** —con su icono de 16 px y el nombre de la
-acción concreta—, seguidos de un divisor y del resto: la barra móvil ya lleva
-cinco controles y añadir dos flechas más dejaría áreas táctiles pegadas.
+«Deshacer» y «Rehacer»** —con su icono de 16 px y el nombre de la acción
+concreta—, seguidos de un divisor y del resto: la barra móvil ya lleva cinco
+controles y añadir dos flechas más dejaría áreas táctiles pegadas.
 
 ### 10.8 Panel de listas
 
@@ -1143,8 +1197,22 @@ ancho mínimo 200 px, máximo 320 px.
   táctil, `aria-label` «Cerrar»). **Cuerpo**: 24 px de relleno (16 en móvil).
   **Pie**: acciones alineadas a la derecha, la principal la última; en móvil se
   apilan a ancho completo con la principal arriba.
-- Foco atrapado; al abrir, el foco va al primer campo (o al botón menos
-  destructivo en una confirmación); al cerrar, vuelve al disparador.
+- Foco atrapado. **Regla general: al abrir, el foco va al título del diálogo**,
+  que lleva `tabindex="-1"` y no entra en el orden normal de tabulación. Dos
+  razones: el cuerpo se ve desde arriba —dejarlo al navegador acababa en el
+  último botón del pie y abría el panel con su desplazamiento interno al final,
+  como si el diálogo empezara por el final— y el lector de pantalla anuncia de
+  qué diálogo se trata antes que su contenido. La regla vive en el componente
+  compartido, no en cada diálogo. Al cerrar, el foco vuelve al disparador.
+- **Excepciones, que cada diálogo declara explícitamente.** Solo estas:
+
+| Diálogo | Foco inicial | Por qué |
+|---|---|---|
+| Nueva / editar tarea, nueva / renombrar lista | Campo «Título» o «Nombre» | Se abre para escribir; el título del diálogo lo repite el propio encabezado |
+| Confirmación destructiva | Botón «Cancelar» | `Enter` a ciegas no puede destruir nada (§11.3) |
+| Paleta de comandos (§10.19) | Su campo de búsqueda | Es un lanzador: se abre para escribir de inmediato |
+| Detalle de la tarea, hoja de atajos, acerca de tus datos | Título (regla general) | Se abren para leer |
+
 - `Esc` cierra; si hay cambios sin guardar, pide confirmación.
   `Ctrl`+`Enter` guarda desde cualquier campo.
 - Variante **confirmación**: icono de 20 px en `danger` o `warning` junto al
@@ -1285,19 +1353,22 @@ menús, avisos breves, confirmaciones y títulos emergentes.
 Un único sitio para hacer cualquier cosa sin tocar el ratón: crear una tarea,
 encontrarla, completarla, cambiar de lista o cambiar de tema. Cumple §1.8.
 
-**Disparador visible.** En escritorio, botón secundario en la barra superior con
-icono propio de paleta (rectángulo con un cursor `›_`, 16 px) y etiqueta
-**«Comandos»**; título emergente «Comandos (`Ctrl` `K`)», con las teclas en el
-título y nunca dentro de la etiqueta (§7.5). No lleva lupa: la lupa ya es del
-buscador y dos lupas en la misma barra significarían dos cosas distintas. En
-móvil y en táctil, el disparador es la fila «Comandos» del menú `⋯` (§10.7).
+**Disparador visible: el buscador de la barra.** No hay un botón «Comandos»
+aparte. El disparador es el **disparador de búsqueda y comandos** (§10.3), que
+abre esta paleta al recibir el foco y muestra `Ctrl` `K` en su ranura derecha. Un
+solo punto de entrada, como en Linear y en Notion: dos controles contiguos que
+sirven a la misma intención —escribir para encontrar o para hacer algo— repartían
+la misma función y obligaban a elegir entre ellos sin ningún criterio. Además, la
+paleta no se descubre con un botón dedicado: se descubre desde el campo de
+búsqueda, que ya es el elemento con más presencia visual de la barra. En móvil y
+en táctil, el disparador es el botón de icono «Buscar o ejecutar» (§10.7).
 
 **Anatomía**
 
 | Parte | Especificación |
 |---|---|
 | Superposición | Velo `scrim`; panel `overlay`, radio `lg`, `shadow-lg`, ancho máximo 560 px, centrado y anclado al 15 % de la altura. En móvil: ancho de la ventana menos 16 px por lado, anclado a 8 %, altura máxima 70 vh |
-| Cabecera (52 px) | Lupa de 20 px `ink-subtle` · campo sin borde de 44 px, `text-base`, marcador de posición «Buscar tareas o escribir un comando» · a la derecha, `Esc` en `kbd` (no se pinta en táctil) |
+| Cabecera (52 px) | Lupa de 20 px `ink-subtle` · campo sin borde de 44 px, `text-base`, marcador de posición «Buscar tareas o escribir un comando» · a la derecha, `Esc` en `kbd` (no se pinta en táctil). **Foco propio**: el campo no dibuja el anillo global —se autoenfoca al abrir y el anillo quedaba encima del borde del panel, dos marcos concéntricos—, sino que el borde inferior de la cabecera pasa de 1 px `line` a 2 px `primary`. Excepción puntual de §7.1, no un cambio de la regla |
 | Cuerpo | Altura máxima 360 px con desplazamiento propio; grupos de resultados con rótulo en versalitas de 11 px `ink-subtle` con `tracking-caps`, 8 px de aire sobre cada rótulo |
 | Fila (44 px; 48 en táctil) | Icono de 16 px · etiqueta · contexto a la derecha en `text-xs` `ink-subtle` · `kbd` del atajo si lo tiene. Relleno lateral 12 px, radio `sm` |
 | Pie (36 px) | Fondo `sunken`, borde superior `line`, `text-2xs` `ink-subtle`, leyenda **contextual** de teclas alineada a la izquierda y recuento de resultados a la derecha («8 resultados») |
@@ -1306,9 +1377,9 @@ móvil y en táctil, el disparador es la fila «Comandos» del menú `⋯` (§10
 
 | Grupo | Contenido | Qué hace `Enter` | Tope |
 |---|---|---|---|
-| **Acciones** | Con consulta, encabeza **«Crear la tarea “{consulta}”»**. Luego: Nueva tarea, Nueva lista, Deshacer: {acción}, Rehacer: {acción}, Tema claro / oscuro / seguir al sistema, Atajos de teclado, Limpiar filtros, Vaciar el tablero | Ejecuta el comando y cierra la paleta. Los que abren un diálogo (crear tarea o lista, vaciar) lo dejan abierto con el foco dentro | 6 |
+| **Acciones** | Con consulta, encabeza **«Crear la tarea “{consulta}”»**. Luego: Nueva tarea, Nueva lista, Deshacer: {acción}, Rehacer: {acción}, Tema claro / oscuro / seguir al sistema, Atajos de teclado, Limpiar filtros, Vaciar el tablero | Ejecuta el comando y cierra la paleta. Los que abren un diálogo (crear tarea o lista, vaciar) lo dejan abierto con su foco inicial (§10.10) | 6 |
 | **Ir a** | «Todas las tareas» y cada lista, con su punto de color y su contador | Navega a `/tablero` o `/tablero/{id}` y cierra | 6 |
-| **Tareas** | Tareas que coinciden, ordenadas por calidad de coincidencia y, a igualdad, por prioridad descendente | Va a la tarea: cierra la paleta, navega a su lista si hacía falta, desplaza su tarjeta a la vista con destello `primary-soft` y abre su detalle (§11.3) | 8, y si hay más, una última fila «Ver los {n} resultados en el tablero» que cierra y vuelca la consulta en el buscador |
+| **Tareas** | Tareas que coinciden, ordenadas por calidad de coincidencia y, a igualdad, por prioridad descendente | Va a la tarea: cierra la paleta, navega a su lista si hacía falta, desplaza su tarjeta a la vista con destello `primary-soft` y abre su detalle (§11.3) | 8 filas de tarea. Con consulta y al menos una coincidencia, el grupo **cierra siempre** con «Ver los {n} resultados en el tablero» (singular: «Ver 1 resultado en el tablero»), que aplica la consulta como búsqueda del tablero y cierra la paleta: es el único camino para llevar la búsqueda al tablero, así que no depende de que sobren resultados |
 
 - **Comandos no disponibles no se listan** (P12): sin historial no hay «Deshacer»,
   sin filtros activos no hay «Limpiar filtros», con el tablero ya vacío no hay
@@ -1337,9 +1408,13 @@ móvil y en táctil, el disparador es la fila «Comandos» del menú `⋯` (§10
 
 **Comportamiento**
 
-- **Apertura**: `Ctrl`+`K` desde cualquier punto, también con el foco dentro de un
-  campo de texto. Con un diálogo modal abierto no hace nada (§7.4). El campo
-  arranca **vacío** en cada apertura: no recuerda la consulta anterior.
+- **Apertura**: `Ctrl`+`K` o `/` desde cualquier punto, también con el foco dentro
+  de un campo de texto, y al enfocar el disparador de la barra (§10.3). Con un
+  diálogo modal abierto no hace nada (§7.4). El campo arranca **vacío**, con una
+  sola excepción: si hay una búsqueda activa en el tablero, se abre con esa
+  consulta escrita y **seleccionada entera**, de modo que escribir la sustituye y
+  `Retroceso` la borra. Una consulta que no llegó a aplicarse al tablero no se
+  recuerda.
 - **Búsqueda difusa** sobre título y descripción de la tarea, nombre de lista y
   etiqueta de comando: coincidencia por subsecuencia sobre el texto normalizado
   sin acentos y sin distinguir mayúsculas —«info» encuentra «Informe» y «cafe»
@@ -1350,8 +1425,9 @@ móvil y en táctil, el disparador es la fila «Comandos» del menú `⋯` (§10
   campo (`aria-activedescendant`). El cuerpo se desplaza para mantener visible la
   fila resaltada.
 - **Cierre**: al ejecutar la acción principal, con `Esc` y al hacer clic en el
-  velo. Siempre devuelve el foco a donde estaba antes de abrir. Cambiar de
-  pestaña no la cierra: al volver, sigue como estaba.
+  velo. Siempre devuelve el foco a donde estaba antes de abrir; si era el
+  disparador de la barra, este lo recibe **sin volver a abrirse** (§10.3).
+  Cambiar de pestaña no la cierra: al volver, sigue como estaba.
 - **Anuncio**: región `polite` con el recuento («8 resultados», «Sin
   resultados») que también se ve en el pie, para que la reacción sea visible y
   audible.
@@ -1403,7 +1479,7 @@ mirando, solo lo que hiciste.
 **Botones de la barra superior** (escritorio `md`+): dos botones de solo icono
 —flecha curva antihoraria y horaria, **20 px**, área visual 36×36, área táctil
 44×44 garantizada—, agrupados con 4 px entre ellos y 12 px del resto, a la
-izquierda del buscador (§10.7).
+izquierda del disparador de búsqueda y comandos (§10.7).
 
 | Estado | Aspecto y texto |
 |---|---|
@@ -1521,7 +1597,8 @@ cualquiera de los cuatro caminos —arrastre incluido— aparece el aviso** (§1
 
 **Contenido, de arriba abajo**
 
-1. **Barra superior** con marca, buscador, «Nueva tarea», tema, atajos y menú.
+1. **Barra superior** con marca, deshacer/rehacer, disparador de búsqueda y
+   comandos, «Nueva tarea», tema, atajos y menú.
 2. **Banners**, si los hay (§12.6).
 3. **Barra de herramientas del tablero**: a la izquierda el título de contexto
    —«Todas las tareas» o el nombre de la lista con su punto de color—; en el
@@ -1578,7 +1655,8 @@ No son rutas, pero sí composiciones que hay que fijar.
 | Lista | Menú desplegable con punto de color | Por defecto la lista activa |
 | Fecha límite | Campo de fecha + «Quitar fecha» | Opcional; debajo, la lectura en claro: «Vence el jueves 3 de marzo de 2027» |
 
-Título del diálogo: «Nueva tarea» o «Editar tarea». Pie: «Cancelar» (secundario)
+Foco inicial declarado: el campo «Título» (excepción de §10.10; el diálogo se
+abre para escribir). Título del diálogo: «Nueva tarea» o «Editar tarea». Pie: «Cancelar» (secundario)
 y «Crear tarea» / «Guardar cambios» (primario, con `kbd` `Ctrl` `Enter`). Al
 editar, aparece además en el pie a la izquierda «Eliminar» en peligro sutil.
 Bajo el pie, en `text-2xs` `ink-subtle`: «Creada el 12 jul 2026 · Editada hace
@@ -1602,11 +1680,13 @@ descripción es larga, el que se desplaza es el cuerpo del diálogo, en vertical
 
 **Lista (crear/renombrar)**, 420 px: nombre (1–60) y selector de color con seis
 muestras de 28 px, marcadas con verificación y nombre accesible («Color azul»).
+Foco inicial declarado: el campo «Nombre».
 
 **Confirmaciones**, 420 px: eliminar tarea, eliminar lista y vaciar el tablero.
 Cada una dice exactamente qué se pierde: «Se eliminarán la lista “Trabajo” y sus
 7 tareas.» / «Se eliminarán las 12 tareas del tablero y quedará una lista vacía.»
-Botón de peligro con la acción nombrada.
+Botón de peligro con la acción nombrada y **foco inicial declarado en
+«Cancelar»**, para que un `Enter` de inercia no borre nada (§10.10).
 
 **Hoja de atajos** (`?`), 520 px: tabla de dos columnas agrupada por ámbito, con
 la descripción a la izquierda y las teclas a la derecha en `kbd` (§10.14). Es el
@@ -1616,13 +1696,15 @@ funcionan** —los de fase 1 de §7.4—, en cuatro grupos:
 
 | Grupo | Atajos |
 |---|---|
-| Global | `Ctrl` `K` paleta de comandos · `Ctrl` `Z` deshacer · `Ctrl` `Shift` `Z` rehacer · `/` buscar · `N` nueva tarea · `L` nueva lista · `T` cambiar de tema · `?` esta hoja · `Esc` cerrar o vaciar la búsqueda |
+| Global | `Ctrl` `K` paleta de comandos · `/` buscar (abre la misma paleta) · `Ctrl` `Z` deshacer · `Ctrl` `Shift` `Z` rehacer · `N` nueva tarea · `L` nueva lista · `T` cambiar de tema · `?` esta hoja · `Esc` cerrar |
 | Tablero | `↑` `↓` `←` `→` navegar · `Enter` abrir el detalle · `Espacio` completar o reabrir · `Supr` eliminar |
 | Paleta de comandos | `↑` `↓` navegar · `Enter` ejecutar · `Ctrl` `Enter` completar la tarea resaltada · `Esc` cerrar |
 | Diálogo | `Ctrl` `Enter` guardar · `Esc` cerrar |
 
 En macOS se pinta `⌘` en lugar de `Ctrl` (§7.4). Todavía no aparece `Ctrl`+
-flechas para mover tarjetas: aún no existe.
+flechas para mover tarjetas: aún no existe. La hoja no tiene ningún campo, así
+que sigue la regla general de §10.10: el foco inicial va a su título y la tabla
+se ve desde la primera fila.
 
 **Acerca de tus datos**, 520 px, abierto desde el menú `⋯`: explica en tres
 frases que todo se guarda en este navegador, que no viaja a ningún servidor, que
@@ -1731,13 +1813,14 @@ Objetivos comprobables, además de los contrastes de §2.6:
   `aria-labelledby` al título. Un solo `h1` por pantalla («Tablero» o el nombre
   de la lista, visualmente el título de la barra de herramientas); los rótulos de
   columna son `h2`.
-- **Etiquetas en español y explícitas**: «Buscar tareas», «Nueva tarea»,
+- **Etiquetas en español y explícitas**: «Buscar o ejecutar un comando», «Nueva tarea»,
   «Filtrar por prioridad», «Abrir el menú de la tarea {título}», «Eliminar la
   lista {nombre}», «Mover la tarea {título}».
 - **Regiones activas**: `polite` para el resumen de resultados y los contadores;
   `assertive` para errores y para los anuncios de arrastre; nunca dos anuncios a
   la vez.
-- **Foco**: visible siempre (§7.1), atrapado en diálogos y cajón, devuelto al
+- **Foco**: visible siempre (§7.1), atrapado en diálogos y cajón, llevado al
+  título del diálogo al abrir salvo excepción declarada (§10.10), devuelto al
   disparador al cerrar, y nunca perdido al eliminar un elemento —al borrar una
   tarjeta el foco pasa a la siguiente, o a la anterior si era la última, o al
   encabezado de la columna si era la única.
@@ -1786,6 +1869,8 @@ lo admita sin rediseño.
 | 14 | Corte de palabra en todo texto escrito por el usuario | Recortar con elipsis y aceptar el desbordamiento | Una sola palabra larga no puede romper un diálogo ni abrir desplazamiento horizontal (K16) |
 | 15 | Una fila por tarea en la paleta: `Enter` va a ella, `Ctrl`+`Enter` la completa | Dos filas por tarea; un comando en dos pasos «Completar una tarea…» | Dos filas duplican la lista y el título; el comando en dos pasos obliga a elegir la acción antes de saber si la tarea existe. La acción secundaria se anuncia en el pie justo cuando aplica (§10.19.4) |
 | 16 | La acción secundaria de la paleta no la cierra | Cerrar siempre al ejecutar, como manda la convención | Completar varias tareas seguidas es el caso real; reabrir y reescribir la consulta cada vez sería un castigo. A cambio, la acción deja tres señales visibles a la vez |
-| 17 | El disparador de la paleta lleva icono propio y etiqueta «Comandos», no una lupa | Botón con lupa y las teclas estampadas | La lupa ya es del buscador; dos lupas en la misma barra significarían dos cosas. Las teclas van en el título emergente (§7.5) |
+| 17 | El buscador de la barra **es** el disparador de la paleta: enfocarlo la abre | Un botón «Comandos» separado junto al buscador | Dos controles contiguos para la misma intención —escribir para encontrar o hacer algo— obligan a elegir sin criterio, y una paleta no se descubre por un botón dedicado sino desde el campo de búsqueda, que es el control con más presencia de la barra. Es el patrón de Linear y Notion (§10.3) |
 | 18 | Deshacer y rehacer viven en el menú `⋯` en móvil, no en la barra | Dos botones más en la barra móvil | La barra ya lleva cinco controles; dos flechas más dejarían áreas táctiles pegadas por debajo del mínimo |
 | 19 | El aviso de «Se deshizo: X» no ofrece «Deshacer» | Encadenar deshacer dentro del propio aviso | El camino de vuelta es el botón de rehacer, que se acaba de habilitar a la vista; un «Deshacer» dentro de un aviso de deshacer no se entiende |
+| 20 | El foco inicial de un diálogo va a su título, con las excepciones declaradas | Dejarlo al primer elemento enfocable | Sin campos previos, el navegador acababa en el último botón del pie y el panel se abría desplazado hasta abajo, como si empezara por el final; el título, además, hace que el lector de pantalla anuncie qué diálogo se abrió. La regla vive en el componente compartido (§10.10) |
+| 21 | El campo de la paleta marca el foco con un cambio de borde, no con el anillo | Mantener el anillo global también ahí | Se autoenfoca al abrir y el anillo quedaba dibujado sobre el borde del panel: dos marcos concéntricos para un único control. Es una excepción puntual; el resto de la aplicación, incluida la fila resaltada de la paleta, conserva su indicador (§7.1) |

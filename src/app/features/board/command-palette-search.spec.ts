@@ -4,7 +4,12 @@ import type {
   PaletteListContext,
   PaletteTaskContext,
 } from './command-palette-search';
-import { buildPaletteGroups, buildSegments, fuzzyMatch } from './command-palette-search';
+import {
+  buildPaletteGroups,
+  buildSegments,
+  fuzzyMatch,
+  initialActiveIndex,
+} from './command-palette-search';
 
 function baseContext(overrides: Partial<PaletteContext> = {}): PaletteContext {
   return {
@@ -164,7 +169,8 @@ describe('buildPaletteGroups', () => {
       baseContext({ tasks: [makeTask({ title: 'Preparar el informe semanal' })] }),
     );
     const tasks = groups.find((g) => g.label === 'Tareas')!;
-    expect(tasks.items).toHaveLength(1);
+    // Followed by the row that hands the query to the board (see below).
+    expect(tasks.items).toHaveLength(2);
     expect(tasks.items[0]).toMatchObject({ kind: 'task', taskId: 't1' });
   });
 
@@ -182,12 +188,12 @@ describe('buildPaletteGroups', () => {
       }),
     );
     const tasks = groups.find((g) => g.label === 'Tareas')!;
-    expect(tasks.items).toEqual([
+    expect(tasks.items[0]).toEqual(
       expect.objectContaining({
         taskId: 't2',
         segments: [{ text: 'Reservar el vuelo', matched: false }],
       }),
-    ]);
+    );
   });
 
   it('ranks a title match above a description-only match for the same query', () => {
@@ -206,7 +212,8 @@ describe('buildPaletteGroups', () => {
     );
     const ids = groups
       .find((g) => g.label === 'Tareas')!
-      .items.map((i) => (i as { taskId: string }).taskId);
+      .items.filter((i): i is Extract<typeof i, { kind: 'task' }> => i.kind === 'task')
+      .map((i) => i.taskId);
     expect(ids).toEqual(['by-title', 'by-description']);
   });
 
@@ -222,8 +229,25 @@ describe('buildPaletteGroups', () => {
     );
     const ids = groups
       .find((g) => g.label === 'Tareas')!
-      .items.map((i) => (i as { taskId: string }).taskId);
+      .items.filter((i): i is Extract<typeof i, { kind: 'task' }> => i.kind === 'task')
+      .map((i) => i.taskId);
     expect(ids).toEqual(['urgent', 'low']);
+  });
+
+  it('always closes with "view all" once there is at least one match, not just past the cap', () => {
+    // The board has no live search field of its own any more: this row is the
+    // only way to hand a query to it, so it can't depend on there being 9+ hits.
+    const groups = buildPaletteGroups(
+      'informe',
+      baseContext({ tasks: [makeTask({ title: 'Preparar el informe semanal' })] }),
+    );
+    const items = groups.find((g) => g.label === 'Tareas')!.items;
+    expect(items).toHaveLength(2);
+    expect(items[1]).toMatchObject({
+      id: 'view-all-results',
+      query: 'informe',
+      label: 'Ver 1 resultado en el tablero',
+    });
   });
 
   it('caps task results and appends a "view all" row beyond the cap', () => {
@@ -233,7 +257,11 @@ describe('buildPaletteGroups', () => {
     const groups = buildPaletteGroups('tarea', baseContext({ tasks }));
     const items = groups.find((g) => g.label === 'Tareas')!.items;
     expect(items).toHaveLength(9);
-    expect(items[8]).toMatchObject({ id: 'view-all-results', query: 'tarea' });
+    expect(items[8]).toMatchObject({
+      id: 'view-all-results',
+      query: 'tarea',
+      label: 'Ver los 10 resultados en el tablero',
+    });
   });
 
   it('never shows an empty group', () => {
@@ -242,5 +270,33 @@ describe('buildPaletteGroups', () => {
       baseContext({ lists: [makeList()] }),
     );
     expect(groups.every((g) => g.items.length > 0)).toBe(true);
+  });
+});
+
+describe('initialActiveIndex', () => {
+  it('stays on the first row when there is no preset query', () => {
+    const groups = buildPaletteGroups('', baseContext());
+    const items = groups.flatMap((g) => g.items);
+    expect(initialActiveIndex(items, false)).toBe(0);
+  });
+
+  it('skips the leading "create task" row for a preset query with a real match', () => {
+    const groups = buildPaletteGroups(
+      'informe',
+      baseContext({ tasks: [makeTask({ title: 'Preparar el informe semanal' })] }),
+    );
+    const items = groups.flatMap((g) => g.items);
+    expect(items[0].id).toBe('create-task');
+
+    const index = initialActiveIndex(items, true);
+    expect(index).toBeGreaterThan(0);
+    expect(items[index].id).not.toBe('create-task');
+  });
+
+  it('falls back to the "create task" row itself when a preset query has no match', () => {
+    const groups = buildPaletteGroups('zzzzz-sin-coincidencias', baseContext());
+    const items = groups.flatMap((g) => g.items);
+    expect(initialActiveIndex(items, true)).toBe(0);
+    expect(items[0].id).toBe('create-task');
   });
 });

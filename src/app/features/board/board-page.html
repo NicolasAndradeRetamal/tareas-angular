@@ -45,21 +45,38 @@
         [size]="18"
         class="pointer-events-none absolute left-2.5 text-ink-subtle"
       />
-      <input
-        #searchInput
-        type="search"
+      <!-- Not an editable field: a button shaped like one. Typing happens inside the palette. -->
+      <button
+        #searchTrigger
+        type="button"
         class="topbar__search-input"
-        placeholder="Buscar tareas"
-        aria-label="Buscar tareas"
-        title="Buscar tareas (/)"
-        [value]="view.query()"
-        (input)="onSearchInput($event)"
-      />
+        [class.topbar__search-input--active]="view.query().length > 0"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="paletteOpen()"
+        [attr.aria-keyshortcuts]="modKeyShortcut"
+        [attr.aria-label]="
+          view.query().length > 0
+            ? 'Buscar o ejecutar…, búsqueda activa: ' + view.query()
+            : 'Buscar o ejecutar…'
+        "
+        (click)="openPalette()"
+        (focus)="onSearchTriggerFocus()"
+      >
+        @if (view.query().length > 0) {
+          <span class="topbar__search-text">«{{ view.query() }}»</span>
+        } @else {
+          <span class="topbar__search-text text-ink-subtle">Buscar o ejecutar…</span>
+          <span class="topbar__search-hint">
+            <kbd class="kbd">{{ modKey }}</kbd>
+            <kbd class="kbd">K</kbd>
+          </span>
+        }
+      </button>
       @if (view.query().length > 0) {
         <button
           type="button"
           class="topbar__search-clear"
-          aria-label="Vaciar la búsqueda"
+          aria-label="Limpiar la búsqueda"
           (click)="clearSearch()"
         >
           <app-icon name="x" [size]="16" />
@@ -77,17 +94,6 @@
         <app-icon-button label="Nueva tarea" hint="Nueva tarea (N)" (clicked)="openCreateTask()">
           <app-icon name="plus" [size]="20" />
         </app-icon-button>
-      </span>
-
-      <span class="hidden md:block">
-        <app-button
-          variant="secondary"
-          [title]="'Comandos (' + modKey + ' K)'"
-          (clicked)="paletteOpen.set(true)"
-        >
-          <app-icon name="command" [size]="16" />
-          Comandos
-        </app-button>
       </span>
 
       <div class="relative" data-menu="theme">
@@ -163,15 +169,6 @@
               {{ redoLabel() ? 'Rehacer: ' + redoLabel() : 'Rehacer' }}
             </button>
             <div class="menu__divider" role="separator"></div>
-            <button
-              type="button"
-              role="menuitem"
-              class="menu__item md:hidden"
-              (click)="overflowMenuOpen.set(false); paletteOpen.set(true)"
-            >
-              <app-icon name="command" [size]="16" />
-              Comandos
-            </button>
             <button
               type="button"
               role="menuitem"
@@ -359,7 +356,9 @@
   [redoLabel]="redoLabel()"
   [hasActiveFilters]="view.hasActiveFilters()"
   [modKey]="modKey"
-  (closed)="paletteOpen.set(false)"
+  [initialQuery]="view.query()"
+  (closed)="onPaletteClosed()"
+  (closing)="onPaletteClosing()"
   (createTask)="openCreateTask('todo', $event)"
   (createList)="openCreateList()"
   (toggleTheme)="theme.toggle()"

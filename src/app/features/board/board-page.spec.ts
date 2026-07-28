@@ -171,7 +171,10 @@ describe('BoardPage', () => {
       await fixture.whenStable();
       const before = board.tasks().length;
 
-      const input: HTMLInputElement = fixture.nativeElement.querySelector('.topbar__search-input');
+      // The task form's own title field is always in the DOM (the native <dialog>
+      // just lacks the `open` attribute), so this works without opening it — which
+      // would call the unavailable HTMLDialogElement.showModal() under jsdom.
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('#task-title');
       input.dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
       await fixture.whenStable();
 

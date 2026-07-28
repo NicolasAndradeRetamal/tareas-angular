@@ -17,15 +17,12 @@ const SHORTCUT_GROUPS: readonly ShortcutGroup[] = [
       { keys: ['Ctrl', 'K'], action: 'Abrir la paleta de comandos' },
       { keys: ['Ctrl', 'Z'], action: 'Deshacer' },
       { keys: ['Ctrl', 'Shift', 'Z'], action: 'Rehacer' },
-      { keys: ['/'], action: 'Enfocar el buscador' },
+      { keys: ['/'], action: 'Abrir la paleta de comandos' },
       { keys: ['N'], action: 'Nueva tarea' },
       { keys: ['L'], action: 'Nueva lista' },
       { keys: ['T'], action: 'Cambiar entre claro y oscuro' },
       { keys: ['?'], action: 'Abrir esta hoja de atajos' },
-      {
-        keys: ['Esc'],
-        action: 'Cerrar diálogo, paleta o menú; con el buscador enfocado, vaciarlo',
-      },
+      { keys: ['Esc'], action: 'Cerrar diálogo, paleta o menú' },
     ],
   },
   {

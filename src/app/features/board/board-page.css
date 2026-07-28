@@ -60,7 +60,11 @@
   }
 }
 
+/* A button shaped like a field, not an <input>: typing happens inside the palette it opens. */
 .topbar__search-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   width: 100%;
   min-width: 0;
   height: 2.25rem;
@@ -70,14 +74,40 @@
   border: 1px solid var(--line-strong);
   color: var(--ink);
   font-size: var(--text-sm);
+  text-align: left;
 }
 
-.topbar__search-input::placeholder {
-  color: var(--ink-subtle);
+.topbar__search-input:hover {
+  border-color: var(--ink-subtle);
 }
 
-.topbar__search-input::-webkit-search-cancel-button {
-  display: none;
+.topbar__search-input--active {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.topbar__search-input--active:hover {
+  background: color-mix(in srgb, var(--primary-soft), var(--hover));
+}
+
+.topbar__search-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar__search-input--active .topbar__search-text {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.topbar__search-hint {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.125rem;
 }
 
 .topbar__search-clear {

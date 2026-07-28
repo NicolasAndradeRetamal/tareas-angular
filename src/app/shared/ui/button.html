@@ -3,6 +3,7 @@
   class="btn"
   [class]="'btn--' + variant() + ' btn--' + size()"
   [disabled]="disabled()"
+  [attr.autofocus]="autofocus() ? '' : null"
   [attr.aria-disabled]="disabled() ? true : null"
   [attr.title]="disabled() && disabledReason() ? disabledReason() : null"
   (click)="clicked.emit()"
