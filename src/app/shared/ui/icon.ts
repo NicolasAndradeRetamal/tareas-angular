@@ -26,7 +26,9 @@ export type IconName =
   | 'chevron-right'
   | 'keyboard'
   | 'info'
-  | 'undo';
+  | 'undo'
+  | 'redo'
+  | 'command';
 
 /** Single hand-rolled icon set: no icon font or third-party dependency. */
 @Component({
