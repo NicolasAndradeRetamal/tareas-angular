@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { TASK_STATUSES } from '../models/task';
 import { isOverdue, todayIso } from '../util/date';
 import { byOrder } from '../util/order';
 import { createSeedBoard } from './seed';
@@ -55,18 +56,32 @@ describe('createSeedBoard', () => {
     ).toBe(true);
   });
 
-  it('assigns a unique, sortable order within each (listId, status) column', () => {
+  it('assigns a unique, sortable order within each status column', () => {
     const board = createSeedBoard(now);
     const groups = new Map<string, typeof board.tasks>();
     for (const task of board.tasks) {
-      const key = `${task.listId}::${task.status}`;
-      groups.set(key, [...(groups.get(key) ?? []), task]);
+      groups.set(task.status, [...(groups.get(task.status) ?? []), task]);
     }
     for (const group of groups.values()) {
       const orders = group.map((task) => task.order);
+      // A tie would fall through to the random id and reshuffle the board on every load.
       expect(new Set(orders).size).toBe(orders.length);
       expect([...group].sort(byOrder)).toEqual(group.slice().sort((a, b) => a.order - b.order));
     }
+  });
+
+  it('lays out every column identically on repeated seeds', () => {
+    // Per column: order has no meaning across statuses, only inside one.
+    const layoutOf = (board: ReturnType<typeof createSeedBoard>) =>
+      TASK_STATUSES.map((status) =>
+        board.tasks
+          .filter((task) => task.status === status)
+          .sort(byOrder)
+          .map((task) => task.title)
+          .join(' | '),
+      );
+
+    expect(layoutOf(createSeedBoard(now))).toEqual(layoutOf(createSeedBoard(now)));
   });
 
   it('produces relative dates that shift with the injected clock', () => {
