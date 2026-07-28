@@ -1,8 +1,8 @@
 <app-dialog [open]="open()" size="form" [labelledBy]="titleId" (closed)="closed.emit()">
   @if (task(); as current) {
-    <article class="flex flex-col">
+    <article class="flex min-w-0 flex-col">
       <header class="flex flex-col gap-2 border-b border-line px-6 py-4">
-        <h2 [id]="titleId" class="text-lg font-semibold text-ink">{{ current.title }}</h2>
+        <h2 [id]="titleId" class="user-text text-lg font-semibold text-ink">{{ current.title }}</h2>
         <p class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-muted">
           <span class="detail-chip">{{ statusLabel() }}</span>
           <span class="detail-chip">Prioridad {{ priorityLabel().toLowerCase() }}</span>
@@ -19,7 +19,9 @@
         <section>
           <h3 class="detail-label">Descripción</h3>
           @if (current.description) {
-            <p class="mt-1 whitespace-pre-line text-base text-ink">{{ current.description }}</p>
+            <p class="user-text mt-1 whitespace-pre-wrap text-base text-ink">
+              {{ current.description }}
+            </p>
           } @else {
             <p class="mt-1 text-base text-ink-subtle">Esta tarea no tiene descripción.</p>
           }

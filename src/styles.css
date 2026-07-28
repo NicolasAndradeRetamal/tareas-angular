@@ -266,6 +266,14 @@
   }
 }
 
+@layer components {
+  /* Anything the user typed: one long word must break instead of blowing the box open. */
+  .user-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
 /* The only cross-cutting visual atom reused by several unrelated components. */
 @layer components {
   .kbd {
