@@ -10,11 +10,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { Router } from '@angular/router';
 import type { CreateTaskInput, UpdateTaskInput } from '../../core/models/board-state';
 import type { List, ListId } from '../../core/models/list';
 import type { Task, TaskId, TaskStatus } from '../../core/models/task';
-import { PRIORITY_LABELS } from '../../core/models/task';
+import { PRIORITY_LABELS, STATUS_LABELS } from '../../core/models/task';
 import { BoardStore } from '../../core/state/board-store';
 import { BoardViewStore } from '../../core/state/board-view-store';
 import type { StatusFilter } from '../../core/state/board-view-store';
@@ -71,6 +72,7 @@ const PERSISTENCE_MESSAGES = {
 @Component({
   selector: 'app-board-page',
   imports: [
+    CdkDropListGroup,
     ListSidebar,
     BoardToolbar,
     TaskColumn,
@@ -336,7 +338,14 @@ export class BoardPage {
     if (!before) return;
 
     this.board.toggleTaskDone(id);
-    this.showToast(before.status === 'done' ? 'Tarea reabierta' : 'Tarea completada');
+    const after = this.board.taskIndex().get(id);
+    if (after) this.announceStatusChange(before.status, after.status);
+  }
+
+  protected changeStatus(payload: { id: TaskId; status: TaskStatus }): void {
+    const before = this.board.taskIndex().get(payload.id);
+    this.board.setTaskStatus(payload.id, payload.status);
+    if (before) this.announceStatusChange(before.status, payload.status);
   }
 
   protected undoLastAction(): void {
@@ -386,10 +395,6 @@ export class BoardPage {
   protected toggleDoneFromDetail(): void {
     const id = this.detailTaskId();
     if (id !== null) this.toggleDone(id);
-  }
-
-  protected changeStatus(payload: { id: TaskId; status: TaskStatus }): void {
-    this.board.setTaskStatus(payload.id, payload.status);
   }
 
   protected duplicateTask(id: TaskId): void {
@@ -478,6 +483,14 @@ export class BoardPage {
     const targetIndex = resolveDropIndex(task, siblings, visible, event.targetIndex);
     this.board.moveTask(event.id, { listId: task.listId, status, targetIndex });
     this.flashTask(event.id);
+    this.announceStatusChange(task.status, status);
+  }
+
+  /** Entering or leaving «Completada» moves the card out of sight; the rest is self-evident. */
+  private announceStatusChange(from: TaskStatus, to: TaskStatus): void {
+    if (from === to) return;
+    if (to === 'done') this.showToast('Tarea completada');
+    else if (from === 'done') this.showToast(`Tarea reabierta en «${STATUS_LABELS[to]}»`);
   }
 
   private flashTask(id: TaskId): void {

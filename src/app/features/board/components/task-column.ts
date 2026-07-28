@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import type { BoardColumn } from '../../../core/state/board-view-store';
 import type { ListId } from '../../../core/models/list';
 import type { List } from '../../../core/models/list';
@@ -28,7 +28,10 @@ const STATUS_TEXT_CLASS: Record<TaskStatus, string> = {
   templateUrl: './task-column.html',
   styleUrl: './task-column.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'task-column' },
+  host: {
+    class: 'task-column',
+    '[class.task-column--drop-target]': 'isDropTarget()',
+  },
 })
 export class TaskColumn {
   readonly column = input.required<BoardColumn>();
@@ -51,14 +54,27 @@ export class TaskColumn {
   protected readonly statusIcon = computed<IconName>(() => STATUS_ICON[this.column().status]);
   protected readonly statusTextClass = computed(() => STATUS_TEXT_CLASS[this.column().status]);
   protected readonly headingId = nextDomId('column-heading');
+  /** Only the column under the pointer is highlighted; the rest stay untouched. */
+  protected readonly isDropTarget = signal(false);
   protected readonly countLabel = computed(() => {
     const count = this.column().tasks.length;
     return count === 1 ? '1 tarea' : `${count} tareas`;
   });
 
   protected onDrop(event: CdkDragDrop<readonly Task[]>): void {
-    if (event.previousIndex === event.currentIndex) return;
+    this.isDropTarget.set(false);
+    const sameColumn = event.previousContainer === event.container;
+    if (sameColumn && event.previousIndex === event.currentIndex) return;
+
     const task = event.item.data as Task;
     this.reordered.emit({ id: task.id, targetIndex: event.currentIndex });
+  }
+
+  protected onDropListEntered(): void {
+    this.isDropTarget.set(true);
+  }
+
+  protected onDropListExited(): void {
+    this.isDropTarget.set(false);
   }
 }

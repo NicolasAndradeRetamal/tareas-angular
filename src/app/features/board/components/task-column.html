@@ -21,6 +21,8 @@
   [cdkDropListDisabled]="!dragEnabled()"
   [cdkDropListData]="column().tasks"
   (cdkDropListDropped)="onDrop($event)"
+  (cdkDropListEntered)="onDropListEntered()"
+  (cdkDropListExited)="onDropListExited()"
 >
   @if (column().tasks.length === 0) {
     <div class="task-column__empty">Sin tareas en «{{ column().label }}»</div>
