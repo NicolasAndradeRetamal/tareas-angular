@@ -126,6 +126,7 @@ export class BoardPage {
   protected readonly detailTaskId = signal<TaskId | null>(null);
   protected readonly toastMessage = signal<string | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private dragCancelled = false;
 
   private readonly explicitFocusId = signal<TaskId | null>(null);
   protected readonly highlightedTaskId = signal<TaskId | null>(null);
@@ -427,7 +428,7 @@ export class BoardPage {
   protected onListFormSubmit(result: ListFormResult): void {
     const id = this.editingListId();
     if (this.listFormMode() === 'edit' && id !== null) {
-      this.board.renameList(id, result.name);
+      this.board.updateList(id, { name: result.name, color: result.color });
       return;
     }
     const created = this.board.createList({ name: result.name, color: result.color });
@@ -471,6 +472,11 @@ export class BoardPage {
   // --- Drag and drop ---
 
   protected onReordered(status: TaskStatus, event: { id: TaskId; targetIndex: number }): void {
+    if (this.dragCancelled) {
+      this.dragCancelled = false;
+      return;
+    }
+
     const task = this.board.taskIndex().get(event.id);
     if (!task) return;
 
@@ -536,7 +542,7 @@ export class BoardPage {
         this.openDetail(task.id);
         break;
       case ' ':
-        this.board.toggleTaskDone(task.id);
+        this.toggleDone(task.id);
         break;
       case 'Delete':
         this.requestDeleteTask(task.id);
@@ -595,6 +601,14 @@ export class BoardPage {
 
   @HostListener('document:keydown', ['$event'])
   protected onGlobalKeydown(event: KeyboardEvent): void {
+    // Esc while a card is in the air cancels the move. The CDK has no cancel of its
+    // own, so the drop is let through and then ignored: nothing changes.
+    if (event.key === 'Escape' && document.querySelector('.cdk-drag-preview') !== null) {
+      this.dragCancelled = true;
+      event.preventDefault();
+      return;
+    }
+
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
 
     if (isEditableTarget(event.target)) {

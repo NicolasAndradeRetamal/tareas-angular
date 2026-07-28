@@ -1,5 +1,14 @@
 import { CdkDrag, CdkDropList, type CdkDragDrop } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import type { BoardColumn } from '../../../core/state/board-view-store';
 import type { ListId } from '../../../core/models/list';
 import type { List } from '../../../core/models/list';
@@ -34,6 +43,8 @@ const STATUS_TEXT_CLASS: Record<TaskStatus, string> = {
   },
 })
 export class TaskColumn {
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
   readonly column = input.required<BoardColumn>();
   readonly listIndex = input.required<ReadonlyMap<ListId, List>>();
   readonly showListMeta = input(false);
@@ -63,6 +74,16 @@ export class TaskColumn {
 
   protected onDrop(event: CdkDragDrop<readonly Task[]>): void {
     this.isDropTarget.set(false);
+
+    // The CDK keeps the item in the last column it entered even if the pointer left
+    // it, so releasing over the top bar would still move the task. The whole column
+    // counts as a destination, padding included — not just the list of cards.
+    const bounds = this.host.nativeElement.getBoundingClientRect();
+    const { x, y } = event.dropPoint;
+    const insideColumn =
+      x >= bounds.left && x <= bounds.right && y >= bounds.top && y <= bounds.bottom;
+    if (!insideColumn) return;
+
     const sameColumn = event.previousContainer === event.container;
     if (sameColumn && event.previousIndex === event.currentIndex) return;
 
