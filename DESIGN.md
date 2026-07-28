@@ -1018,7 +1018,8 @@ aquí.
   al cerrarse no la reabre: la apertura la dispara la interacción del usuario, no
   el foco restablecido por programa. Sin esa distinción, cerrar sería imposible.
 - La **búsqueda activa** se aplica desde la paleta, con la fila «Ver los {n}
-  resultados en el tablero» (§10.19), y se retira desde el botón de limpiar o
+  resultados en el tablero» (singular con una sola coincidencia: «Ver 1
+  resultado en el tablero») (§10.19), y se retira desde el botón de limpiar o
   desde «Limpiar filtros» (§10.4). Al limpiar, el foco se queda en el disparador
   —sin reabrir la paleta— y el resumen del tablero vuelve a su forma sin
   búsqueda.
@@ -1378,7 +1379,7 @@ en táctil, el disparador es el botón de icono «Buscar o ejecutar» (§10.7).
 |---|---|---|---|
 | **Acciones** | Con consulta, encabeza **«Crear la tarea “{consulta}”»**. Luego: Nueva tarea, Nueva lista, Deshacer: {acción}, Rehacer: {acción}, Tema claro / oscuro / seguir al sistema, Atajos de teclado, Limpiar filtros, Vaciar el tablero | Ejecuta el comando y cierra la paleta. Los que abren un diálogo (crear tarea o lista, vaciar) lo dejan abierto con su foco inicial (§10.10) | 6 |
 | **Ir a** | «Todas las tareas» y cada lista, con su punto de color y su contador | Navega a `/tablero` o `/tablero/{id}` y cierra | 6 |
-| **Tareas** | Tareas que coinciden, ordenadas por calidad de coincidencia y, a igualdad, por prioridad descendente | Va a la tarea: cierra la paleta, navega a su lista si hacía falta, desplaza su tarjeta a la vista con destello `primary-soft` y abre su detalle (§11.3) | 8 filas de tarea. Con consulta y al menos una coincidencia, el grupo **cierra siempre** con «Ver los {n} resultados en el tablero», que aplica la consulta como búsqueda del tablero y cierra la paleta: es el único camino para llevar la búsqueda al tablero, así que no depende de que sobren resultados |
+| **Tareas** | Tareas que coinciden, ordenadas por calidad de coincidencia y, a igualdad, por prioridad descendente | Va a la tarea: cierra la paleta, navega a su lista si hacía falta, desplaza su tarjeta a la vista con destello `primary-soft` y abre su detalle (§11.3) | 8 filas de tarea. Con consulta y al menos una coincidencia, el grupo **cierra siempre** con «Ver los {n} resultados en el tablero» (singular: «Ver 1 resultado en el tablero»), que aplica la consulta como búsqueda del tablero y cierra la paleta: es el único camino para llevar la búsqueda al tablero, así que no depende de que sobren resultados |
 
 - **Comandos no disponibles no se listan** (P12): sin historial no hay «Deshacer»,
   sin filtros activos no hay «Limpiar filtros», con el tablero ya vacío no hay
