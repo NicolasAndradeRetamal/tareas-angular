@@ -17,19 +17,8 @@ import { nextDomId } from '../../../shared/ui/dom-id';
 import { IconButton } from '../../../shared/ui/icon-button';
 import type { IconName } from '../../../shared/ui/icon';
 import { Icon } from '../../../shared/ui/icon';
+import { STATUS_ICON, STATUS_TEXT_CLASS } from '../../../shared/ui/status-icon';
 import { TaskCard } from './task-card';
-
-const STATUS_ICON: Record<TaskStatus, IconName> = {
-  todo: 'circle-dashed',
-  'in-progress': 'circle-half',
-  done: 'circle-check',
-};
-
-const STATUS_TEXT_CLASS: Record<TaskStatus, string> = {
-  todo: 'text-status-todo',
-  'in-progress': 'text-status-progress',
-  done: 'text-status-done',
-};
 
 @Component({
   selector: 'app-task-column',
