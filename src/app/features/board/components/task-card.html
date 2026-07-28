@@ -5,26 +5,18 @@
 
 <div class="flex flex-col gap-2 p-3">
   <div class="flex items-start gap-2">
-    <button
-      type="button"
-      role="checkbox"
-      [attr.aria-checked]="task().status === 'done'"
-      [attr.aria-label]="
-        (task().status === 'done' ? 'Reabrir: ' : 'Marcar como completada: ') + task().title
-      "
-      [attr.tabindex]="roving() ? 0 : -1"
-      class="task-checkbox mt-0.5 shrink-0"
-      [class.task-checkbox--checked]="task().status === 'done'"
-      (click)="toggleDone.emit()"
-    >
-      @if (task().status === 'done') {
-        <app-icon name="check" [size]="14" />
-      }
-    </button>
+    @if (task().status === 'done') {
+      <app-icon
+        name="circle-check"
+        [size]="18"
+        class="mt-0.5 shrink-0 text-success"
+        aria-hidden="true"
+      />
+    }
 
     <h3
       [id]="titleId"
-      class="min-w-0 flex-1 line-clamp-2 text-sm font-medium leading-5 text-ink"
+      class="user-text min-w-0 flex-1 line-clamp-2 text-sm font-medium leading-5 text-ink"
       [class.line-through]="task().status === 'done'"
       [class.text-ink-subtle]="task().status === 'done'"
     >
@@ -46,7 +38,7 @@
   </div>
 
   @if (task().description) {
-    <p class="line-clamp-1 text-xs text-ink-muted">{{ task().description }}</p>
+    <p class="user-text line-clamp-1 text-xs text-ink-muted">{{ task().description }}</p>
   }
 
   <div class="flex h-5 flex-wrap items-center gap-2 text-xs">
@@ -105,6 +97,19 @@
         (detach)="menuOpen.set(false)"
       >
         <div class="task-card__menu" role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            class="task-card__menu-item"
+            (click)="runAction(() => toggleDone.emit())"
+          >
+            <app-icon
+              [name]="task().status === 'done' ? 'circle-dashed' : 'circle-check'"
+              [size]="16"
+            />
+            {{ task().status === 'done' ? 'Reabrir' : 'Completar' }}
+          </button>
+          <div class="task-card__menu-divider" role="separator"></div>
           <button
             type="button"
             role="menuitem"

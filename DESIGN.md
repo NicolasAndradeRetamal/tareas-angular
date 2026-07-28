@@ -1,7 +1,8 @@
 # Diseño — tareas-angular
 
 Sistema visual y de interacción del tablero. Este documento es el contrato de la
-interfaz: fija identidad, color, tipografía, tokens, movimiento, comportamiento
+interfaz: fija la familia de producto a la que pertenece y las convenciones que
+hereda de ella, identidad, color, tipografía, tokens, movimiento, comportamiento
 del teclado y del arrastre, la especificación de cada componente y la
 composición de cada pantalla. Lo que no esté aquí, no se inventa al implementar:
 se añade aquí primero.
@@ -11,7 +12,7 @@ documento son la referencia legible de esos mismos valores.
 
 ---
 
-## 1. Identidad
+## 1. Identidad y familia del producto
 
 ### 1.1 Concepto
 
@@ -60,6 +61,68 @@ partes, emojis como iconografía y un arcoíris de colores decorativos.
 
 En la fase 2 se añaden los iconos de 192, 512 y *maskable* del manifiesto.
 
+### 1.4 Familia de producto y referencias
+
+Esta aplicación es un **tablero kanban personal**: tarjetas de tarea repartidas
+en columnas que representan el estado del trabajo. No es una lista de pendientes
+lineal ni un gestor de notas, y esa pertenencia decide el modelo de interacción
+antes que cualquier decisión visual: quien la abre ya sabe cómo debería
+comportarse porque ha visto otros tableros.
+
+| Referencia | Qué aporta |
+|---|---|
+| **Trello** | El arquetipo del tablero para el público general: columnas a la vista, tarjeta que se arrastra de una a otra, clic en la tarjeta que abre su detalle. Fija el mínimo que cualquiera espera sin que se lo expliquen |
+| **Jira (vista de tablero)** | El tablero como reflejo de un flujo de trabajo: la columna **es** el estado, lleva su contador, y los filtros actúan por encima del tablero sin alterar los datos |
+| **Linear** | El nivel de acabado: teclado primero, respuesta inmediata, deshacer al alcance de la mano y densidad alta sin ruido. Es la referencia de artesanía, no de estructura |
+
+### 1.5 Lo que cualquiera da por sentado en un tablero
+
+Lista de comprobación, no de intenciones. Cada punto es verificable abriendo la
+aplicación.
+
+- **K1** — Las columnas se ven juntas y cada una está rotulada con el estado que representa.
+- **K2** — La columna **es** el estado: la posición de la tarjeta es la única declaración de en qué punto está la tarea.
+- **K3** — Las tarjetas se arrastran **entre columnas**; soltar en otra columna cambia el estado. Dentro de la misma, reordena.
+- **K4** — Mientras se arrastra se ve qué se mueve, sobre qué columna está el puntero y en qué posición exacta caerá.
+- **K5** — Soltar fuera de un destino válido no destruye nada: la tarjeta vuelve a su sitio. `Esc` cancela.
+- **K6** — El orden dentro de la columna lo decide el usuario y se conserva entre sesiones.
+- **K7** — Cada columna dice cuántas tarjetas tiene, incluido el cero.
+- **K8** — Se crean tarjetas desde la propia columna, y la tarjeta nace en esa columna.
+- **K9** — Al hacer clic en una tarjeta se abre su detalle completo; no se edita en línea ni se mueve por accidente.
+- **K10** — Cada tarjeta tiene un menú con sus acciones, y las destructivas están separadas del resto.
+- **K11** — El frente de la tarjeta muestra lo justo para decidir: título, prioridad, fecha límite y lista.
+- **K12** — Lo que se mueve, completa o borra se puede deshacer, con el camino de vuelta a mano justo después de la acción.
+- **K13** — Buscar y filtrar no cambia los datos, solo lo que se ve, y siempre se sabe qué criterio está activo.
+- **K14** — El tablero se puede acotar a un proyecto o verlo entero.
+- **K15** — Todo lo que se hace con el ratón tiene camino de teclado.
+- **K16** — El texto que escribe el usuario se muestra dentro de su tarjeta o de su diálogo, sin romper la maquetación ni provocar desplazamiento horizontal.
+
+### 1.6 Verificación del diseño contra la lista
+
+| # | Veredicto | Detalle |
+|---|---|---|
+| K1 | Cumple | Tres columnas apiladas en móvil y lado a lado desde 768 px (§11.0) |
+| K2 | **No cumplía → corregido** | La tarjeta llevaba una casilla que mandaba la tarea a «Completada» desde cualquier columna: dos portadores de la misma verdad, y un salto de columna inexplicable al marcarla. La casilla se elimina (§10.5, §11.0.1) |
+| K3 | **No cumplía → corregido** | El arrastre solo reordenaba dentro de una columna. Las tres pasan a formar un grupo conectado y soltar en otra cambia el estado (§8) |
+| K4 | Cumple con K3 | Vista previa, columna de destino resaltada y hueco de inserción (§8.2). Antes estaban especificados pero no llegaban a verse, porque no había más destino que el origen |
+| K5 | Cumple con K3 | Cancelación con `Esc` y al soltar fuera de toda columna (§8.2) |
+| K6 | Cumple | Orden propio dentro de cada columna, persistido |
+| K7 | Cumple | Contador en el encabezado, visible también en cero (§3.2) |
+| K8 | Cumple | Botón de añadir en el encabezado y en el pie de cada columna (§10.6) |
+| K9 | **Parcial → corregido** | El detalle se abría con `Enter` y desde el menú, pero no estaba fijado que el cuerpo de la tarjeta fuera el disparador; quedaba a criterio de quien implementara. Ahora lo está (§10.5) |
+| K10 | Cumple | Menú `⋯` con «Eliminar» tras un divisor (§10.5) |
+| K11 | Cumple | §10.5 |
+| K12 | Cumple | Toda mutación es deshacible y el aviso breve ofrece «Deshacer» (§10.12, §11.0.1) |
+| K13 | Cumple | Segmentado de estado, filtro de prioridad y resumen siempre visible (§10.4) |
+| K14 | Cumple | Panel de listas y ruta `/tablero/:listId` (§10.8, §11.1) |
+| K15 | Cumple | Flechas dentro del tablero, «Mover a ›» en el menú y `Espacio` para completar (§7.3) |
+| K16 | **No cumplía → corregido** | Una palabra larga sin espacios se pegaba al borde y abría desplazamiento horizontal dentro del diálogo de detalle. Se fija una regla única de tratamiento del texto (§10.18) |
+
+**Desvíos conscientes.** Las columnas no son configurables, no hay carriles ni
+límites de trabajo en curso: son tres estados fijos de un tablero personal, y
+hacerlos configurables sería abstracción sin uso. El tablero tampoco se desplaza
+lateralmente como el de Trello, porque tres columnas siempre caben (§15).
+
 ---
 
 ## 2. Color
@@ -107,7 +170,7 @@ superficie.
 | `ink-muted` | Texto secundario, etiquetas, iconos de apoyo | `#55556B` | `#ABABC0` |
 | `ink-subtle` | Metadatos, contadores, marcador de posición | `#67677E` | `#8B8BA3` |
 | `line` | Bordes decorativos y divisores | `#DFDFE8` | `#2A2A36` |
-| `line-strong` | Bordes funcionales: campo, casilla, botón secundario | `#8A8AA0` | `#6B6B85` |
+| `line-strong` | Bordes funcionales: campo, selector, botón secundario | `#8A8AA0` | `#6B6B85` |
 
 ### 2.4 Marca y semánticos
 
@@ -117,7 +180,7 @@ superficie.
 | `primary-hover` | Hover y pulsado sobre elementos de marca | `#6B21A8` | `#D8B4FE` |
 | `primary-soft` | Fondo de elemento seleccionado, chip de marca, hueco de destino | `#F3E8FF` | `#2C1148` |
 | `on-primary` | Texto e iconos sobre relleno `primary` | `#FFFFFF` | `#1A0B2E` |
-| `success` | Columna «Completadas», casilla marcada, aviso de éxito | `#146C33` | `#4ADE80` |
+| `success` | Columna «Completadas», marca de tarea completada, aviso de éxito | `#146C33` | `#4ADE80` |
 | `success-soft` / `on-success` | Fondo del aviso de éxito / texto sobre relleno | `#E3F5E9` / `#FFFFFF` | `#0E2C1A` / `#06210F` |
 | `warning` | Prioridad alta, vence hoy o mañana, aviso no bloqueante | `#A44E05` | `#FBBF24` |
 | `warning-soft` / `on-warning` | Fondo del aviso / texto sobre relleno | `#FCEDD8` / `#FFFFFF` | `#3A2607` / `#2A1A02` |
@@ -263,7 +326,7 @@ igualmente (nunca se oculta): saber que una columna está vacía es información
 | **Vencida** | Cápsula `danger-soft` con texto `danger`, icono de triángulo de aviso de 14 px y **texto completo**: «Venció hace 2 días · 25 jul 2026». Además, la fecha nunca se muestra sola |
 | **Vence hoy / mañana** | Cápsula `warning-soft` con texto `warning`, icono de reloj: «Vence hoy · 27 jul 2026», «Vence mañana · 28 jul 2026» |
 | **Con fecha futura** | Sin cápsula: icono de calendario de 14 px en `ink-subtle` + fecha: «3 mar 2027» |
-| **Completada** | Casilla marcada en `success` con la marca de verificación, título en `ink-subtle` con tachado de 1 px, y toda la tarjeta al 70 % de opacidad. La franja de prioridad pasa a `line` |
+| **Completada** | Marca de verificación de 16 px en `success` delante del título, título en `ink-subtle` con tachado de 1 px, y toda la tarjeta al 70 % de opacidad. La franja de prioridad pasa a `line`. La marca es un indicador, no un control: no responde al clic |
 | **Sin fecha** | No se muestra nada. La ausencia no se rellena con guiones ni con «Sin fecha» |
 
 **Regla de fechas**: toda fecha visible lleva día, mes abreviado y **año siempre
@@ -349,7 +412,8 @@ sistema no están garantizados y el navegador los sintetiza mal.
 ### 4.3 Ajustes pensados para tarjetas densas
 
 - **Título de tarea**: `text-sm`, peso 500, interlineado 20 px, máximo **2
-  líneas** con recorte por elipsis (`line-clamp-2`). No se rompen palabras.
+  líneas** con recorte por elipsis (`line-clamp-2`); una palabra que no quepa
+  entera se parte antes que desbordar (§10.18).
 - **Descripción en la tarjeta**: `text-xs`, `ink-muted`, **1 línea** recortada.
   Si la tarea no tiene descripción, la línea no se reserva.
 - **Fila de metadatos**: `text-xs`, altura fija de 20 px, separación de 8 px
@@ -388,7 +452,7 @@ encabezado de columna **44 px**; fila de menú **36 px**; campo de formulario
 
 | Token | Valor | Uso |
 |---|---|---|
-| `radius-xs` | 4 px | Teclas `kbd`, medidor de prioridad, casilla |
+| `radius-xs` | 4 px | Teclas `kbd`, medidor de prioridad, muestras de color |
 | `radius-sm` | 6 px | Botones, campos, filas de menú, chips |
 | `radius-md` | 8 px | Tarjeta de tarea, avisos breves, banner |
 | `radius-lg` | 12 px | Columna, diálogo, panel de menú, paleta de comandos |
@@ -405,7 +469,7 @@ exterior. Una tarjeta (8) dentro de una columna (12) nunca lleva radio 12.
 - Los bloques de contenido (tarjeta, columna, diálogo, menú) llevan borde
   `line`; en modo oscuro ese borde **es el principal recurso de separación**
   porque las sombras casi no se ven.
-- Los controles (campo, casilla, botón secundario) llevan borde `line-strong`,
+- Los controles (campo, selector, botón secundario) llevan borde `line-strong`,
   que sí cumple 3:1.
 - El borde nunca desaparece en hover; cambia de color o se le suma un velo, para
   que no haya saltos de 1 px en la maquetación.
@@ -460,7 +524,7 @@ Regla: **nada dura más de 250 ms** y nada se anima que no sea `opacity`,
 | Cajón de listas (móvil) | `translateX(-100%)→0`, 250 ms `ease-standard`; velo en paralelo | 200 ms `ease-exit` |
 | Tarjeta creada | Opacidad 0→1 + `translateY(-4px)→0`, 200 ms, **más** un destello de fondo `primary-soft` que se desvanece en 1200 ms | — |
 | Tarjeta eliminada | Opacidad 1→0 + `scale(.98)`, 150 ms; el hueco se cierra en 200 ms `ease-standard` | — |
-| Casilla de completar | Marca dibujada en 150 ms `ease-entrance`; el título se atenúa y tacha en 150 ms | — |
+| Tarea completada desde el menú o el teclado | La tarjeta sale de su columna con opacidad 1→0 + `translateY(-4px)` en 150 ms y reaparece en «Completadas» con su destello; el hueco se cierra en 200 ms `ease-standard` y los dos contadores se actualizan al terminar | — |
 | Hover / pulsado | `background-color` 90 ms lineal | igual |
 | Anillo de foco | **Sin transición.** Aparece y desaparece de inmediato | — |
 | Cambio de tema | `background-color` y `color` en 150 ms sobre `html`; se desactiva mientras el usuario no haya interactuado, para que la carga inicial no parpadee | — |
@@ -533,12 +597,12 @@ en las opciones de tema.
 | `←` `→` | Columna anterior / siguiente, conservando la posición vertical aproximada |
 | `Inicio` `Fin` | Primera / última tarjeta de la columna |
 | `Enter` | Abrir el detalle de la tarea |
-| `Espacio` | Marcar o desmarcar como completada |
+| `Espacio` | Completar la tarea, o reabrirla si ya estaba completada (§11.0.1) |
 | `Supr` | Eliminar la tarea (abre confirmación) |
 | `Esc` | Salir del tablero hacia la barra de herramientas |
 
 - Al pulsar `Tab` dentro de una tarjeta enfocada, el foco entra en sus controles
-  internos (casilla, menú) en orden; `Esc` vuelve a la tarjeta.
+  internos (asidero, menú) en orden; `Esc` vuelve a la tarjeta.
 - El desplazamiento sigue al foco: la tarjeta enfocada siempre queda visible
   dentro de su columna (`scroll-margin` de 8 px arriba y abajo).
 
@@ -602,10 +666,20 @@ Reglas de comportamiento:
 
 ## 8. Arrastrar y soltar
 
-Se implementa con el CDK de Angular. En la fase 1 el arrastre **reordena dentro
-de la misma columna**; en la fase 2 se conectan las tres columnas y se admite
-soltar entre ellas. La especificación visual es la misma; lo que cambia es qué
-destinos aceptan la tarjeta.
+Es la interacción central del tablero (K3). Se implementa con el CDK de Angular
+y **las tres columnas forman un único grupo conectado**
+(`cdkDropListGroup`): cualquier tarjeta se puede soltar en cualquiera de ellas,
+incluida la suya.
+
+| Gesto | Efecto |
+|---|---|
+| Soltar sobre otra columna | La tarea pasa al estado de esa columna y queda en la posición donde se soltó |
+| Soltar sobre la propia columna | Solo cambia el orden dentro de ella |
+| Soltar fuera de toda columna, o `Esc` | No cambia nada: la tarjeta vuelve a su origen |
+
+Pasar a «Completadas» arrastrando cuenta como completar y muestra el aviso breve
+con «Deshacer» (§11.0.1). El resto de movimientos no muestra aviso: el usuario
+acaba de ver el resultado con su propia mano.
 
 ### 8.1 Asidero y cursor
 
@@ -618,21 +692,27 @@ destinos aceptan la tarjeta.
 - Cursores: `grab` sobre el asidero; `grabbing` en todo el documento mientras se
   arrastra (clase `cdk-drag-dragging` sobre `<body>`); el resto de la interfaz
   mantiene su cursor normal.
-- Arrastrar desde el cuerpo de la tarjeta también funciona en escritorio; el
-  asidero existe para el táctil y para dejar clara la afordancia.
+- Arrastrar desde el cuerpo de la tarjeta también funciona en escritorio, y
+  convive con el clic que abre el detalle: si el puntero se desplaza más de 4 px
+  con el botón pulsado, es un arrastre y no un clic (§10.5).
+- **En táctil se arrastra solo desde el asidero**: sobre la tarjeta, tocar abre
+  el detalle y deslizar desplaza la página, que es lo que espera el dedo.
 
-### 8.2 Estados
+### 8.2 Qué se ve mientras se arrastra
 
 | Elemento | Aspecto |
 |---|---|
-| **Tarjeta arrastrada** (`.cdk-drag-preview`) | `shadow-drag`, `scale(1.02)`, `rotate(1.5deg)`, borde `primary` al 40 %, opacidad 1. Conserva el ancho original de la columna |
-| **Hueco de destino** (`.cdk-drag-placeholder`) | Misma altura que la tarjeta, fondo `primary-soft`, borde discontinuo de 1.5 px `primary` al 45 %, radio `md`, sin contenido. Aparece con 150 ms de opacidad |
+| **Tarjeta arrastrada** (`.cdk-drag-preview`) | `shadow-drag`, `scale(1.02)`, `rotate(1.5deg)`, borde `primary` al 40 %, opacidad 1. Conserva el ancho de la columna de origen, aunque el puntero esté sobre otra |
 | **Tarjeta de origen** | Desaparece de su sitio: el hueco ocupa exactamente su lugar, así que no hay salto |
+| **Hueco de destino** (`.cdk-drag-placeholder`) | Misma altura que la tarjeta, fondo `primary-soft`, borde discontinuo de 1.5 px `primary` al 45 %, radio `md`, sin contenido. **Es único y viaja con el puntero**: al entrar en otra columna desaparece de la anterior y se abre en la nueva, entre las dos tarjetas donde caerá. Aparece con 150 ms de opacidad |
+| **Hueco en una columna vacía** | Sustituye al bloque «Sin tareas en …» (§12.5) conservando sus 88 px, de modo que la columna vacía es un destino tan visible como las demás |
+| **Columna bajo el puntero** (destino) | Fondo `sunken` + velo `hover`, anillo interior de 1 px `primary` al 40 %, y en el encabezado el punto y el icono de estado al 100 % de opacidad con el rótulo en `ink`. Transición 150 ms. **Solo una columna a la vez**; si el puntero vuelve a la de origen, es esa la que se resalta |
+| **Columnas restantes** | Sin cambio alguno. No se atenúan: las tres son destinos válidos y atenuar sugeriría lo contrario |
+| **Puntero fuera de toda columna** | Ninguna columna resaltada y el hueco regresa a la posición de origen, así se ve de antemano que soltar ahí no cambiará nada |
 | **Vecinas** | Se recolocan con `transform` en 250 ms `ease-standard` (`.cdk-drag-animating`) |
-| **Columna activa** (recibe el puntero) | Fondo pasa de `sunken` a `sunken` + velo `hover`; anillo interior de 1 px `primary` al 40 %; el encabezado sube su punto de color al 100 % de opacidad. Transición 150 ms |
-| **Columna no elegible** (fase 2, destino inválido) | Contenido al 55 % de opacidad, sin anillo. Nunca se atenúa la columna de origen |
-| **Soltar válido** | La tarjeta cae en su sitio en 200 ms `ease-entrance` y recibe el destello `primary-soft` de 1200 ms, para que se vea dónde quedó |
-| **Soltar cancelado** (`Esc` o fuera) | La tarjeta vuelve a su origen en 250 ms `ease-standard` sin destello |
+| **Contadores de columna** | No se tocan durante el arrastre; ambos —origen y destino— se actualizan al soltar, para que no parpadeen a cada movimiento del puntero |
+| **Soltar válido** | La tarjeta cae en su sitio en 200 ms `ease-entrance` y recibe el destello `primary-soft` de 1200 ms. Si el destino es «Completadas», adopta a la vez el aspecto de completada (§3.3) |
+| **Soltar cancelado** (`Esc` o fuera de toda columna) | La tarjeta vuelve a su origen en 250 ms `ease-standard`, sin destello y sin aviso |
 | **Movimiento reducido** | Sin rotación ni escalado en la vista previa; el hueco aparece sin transición; las vecinas saltan |
 
 ### 8.3 Desplazamiento automático
@@ -644,16 +724,20 @@ el de la página.
 
 ### 8.4 Accesibilidad del arrastre
 
-- El arrastre por puntero **no es el único camino**: la tarjeta se mueve de
-  columna desde su menú («Mover a › En progreso») y, en la fase 2, con
+- El arrastre por puntero **no es el único camino**: la tarjeta cambia de columna
+  desde su menú («Mover a › En progreso», «Completar») y, en la fase 2, con
   `Ctrl`+flechas.
-- El asidero es un `<button>` real con `aria-label` «Reordenar la tarea
-  {título}» y `aria-describedby` apuntando a una instrucción invisible:
-  «Usa el menú de la tarea para moverla de columna».
-- Se anuncia por región activa (`LiveAnnouncer` del CDK, `assertive`):
-  - al empezar: «Tarea “Preparar informe” tomada. Posición 2 de 5 en Por hacer.»
-  - al soltar: «Tarea “Preparar informe” soltada. Posición 1 de 5 en Por hacer.»
-  - al cancelar: «Movimiento cancelado. La tarea vuelve a su posición.»
+- El asidero es un `<button>` real con `aria-label` «Mover la tarea {título}» y
+  `aria-describedby` apuntando a una instrucción invisible: «Para moverla sin
+  arrastrar, usa “Mover a” en el menú de la tarea».
+- Se anuncia por región activa (`LiveAnnouncer` del CDK). El anuncio **siempre
+  nombra la columna**, porque el estado es lo que cambia:
+  - al empezar (`assertive`): «Tarea “Preparar informe” tomada. Por hacer, posición 2 de 5.»
+  - al cambiar de columna o de posición de destino (`polite`, solo cuando el
+    destino cambia de verdad): «En progreso, posición 1 de 4.»
+  - al salir de toda columna (`polite`): «Fuera de las columnas. Si sueltas aquí, la tarea no se moverá.»
+  - al soltar (`assertive`): «Tarea “Preparar informe” movida a En progreso, posición 1 de 4.» Si el destino es la misma columna: «…reordenada en Por hacer, posición 1 de 5.»
+  - al cancelar (`assertive`): «Movimiento cancelado. La tarea vuelve a Por hacer, posición 2 de 5.»
 - Mientras se arrastra, el `aria-live` de contadores y filtros **no** se
   actualiza, para no encadenar anuncios.
 
@@ -823,9 +907,9 @@ contador de caracteres opcional a la derecha del texto de ayuda.
 | Inválido | Borde `danger`, icono de aviso de 16 px dentro del campo a la derecha, mensaje en `danger` debajo con el mismo icono, `aria-invalid="true"` y `aria-describedby` al mensaje |
 | Solo lectura | Sin borde, fondo transparente, texto `ink` |
 
-La validación se muestra **al salir del campo** y se actualiza al escribir una
-vez mostrada. Nunca se marca en rojo un campo que el usuario todavía no ha
-tocado. El contador de caracteres aparece a partir del 80 % del máximo y pasa a
+La validación se muestra **al intentar enviar** y, a partir de ahí, se actualiza
+al escribir. Nunca se marca en rojo un campo que el usuario todavía no ha
+terminado: salir de un campo vacío no es un error, es no haber llegado aún. El contador de caracteres aparece a partir del 80 % del máximo y pasa a
 `danger` al superarlo.
 
 **Área de texto**: mismas reglas, altura mínima de 3 líneas, redimensionable solo
@@ -876,28 +960,36 @@ filtro la pantalla apenas cambia, el texto deja constancia de qué se aplicó.
 
 ```
 ┌─┬──────────────────────────────────────────────┐
-│ │ [casilla 20px] Título de la tarea      [⠿]  │   ← franja de prioridad 3px
-│ │                                              │
+│ │ Título de la tarea, hasta dos líneas    [⠿] │   ← franja de prioridad 3px
 │ │ Descripción recortada a una línea            │
-│ │                                              │
 │ │ [medidor] [cápsula de fecha] [• Lista]  [⋯] │
 └─┴──────────────────────────────────────────────┘
 ```
 
 - Fondo `surface`, borde `line`, radio `md`, `shadow-xs`, ancho completo de la
   columna, separación de 8 px con la siguiente.
+- **La tarjeta entera abre el detalle** (K9): su cuerpo es el disparador, con
+  `role="button"` sobre el `article`, `aria-labelledby` al título y respuesta a
+  clic, `Enter` y `Espacio`… salvo `Espacio`, que completa (§7.3). El asidero y
+  el menú detienen la propagación para no abrir el detalle al usarlos. Un
+  arrastre nunca cuenta como clic: se abre el detalle solo si el puntero no se
+  desplazó más de 4 px.
+- **Título**: empieza en el borde izquierdo del relleno. Ese espacio lo ocupaba
+  antes una casilla de completar; ahora es ancho de título, que es lo que de
+  verdad se lee al escanear una columna.
 - **Franja de prioridad**: 3 px a la izquierda, de borde a borde, con el color de
   la prioridad (§3.1).
 - **Franja de lista**: 2 px arriba con el color de la lista, **solo cuando se ven
   varias listas a la vez** (`/tablero` sin lista activa).
-- **Casilla**: 20 px, alineada con la primera línea del título, área táctil
-  44×44 px. Marcar completa la tarea.
 - **Asidero** (`⠿`): 20 px, arriba a la derecha, según §8.1.
-- **Menú** (`⋯`): 20 px, abajo a la derecha; contiene Editar (`Enter`),
-  Duplicar, Mover a › (los otros dos estados), Cambiar prioridad ›, y —separado
-  por un divisor— Eliminar en peligro sutil (`Supr`).
+- **Menú** (`⋯`): 20 px, abajo a la derecha; contiene **Completar** (o
+  **Reabrir** si ya está completada, `Espacio`), Editar (`Enter`), Duplicar,
+  Mover a › (los otros dos estados), Cambiar prioridad ›, y —separado por un
+  divisor— Eliminar en peligro sutil (`Supr`).
 - **Fila de metadatos**: medidor de prioridad, cápsula de fecha si la hay, punto
   y nombre de la lista cuando procede. Altura fija de 20 px.
+- **No hay casilla ni interruptor de estado en la tarjeta**: el estado tiene un
+  solo portador, que es la columna (§11.0.1).
 
 | Estado | Aspecto |
 |---|---|
@@ -906,7 +998,7 @@ filtro la pantalla apenas cambia, el texto deja constancia de qué se aplicó.
 | Foco | Anillo global de 2 px por fuera; no cambia la sombra |
 | Activo (pulsando) | `scale(.995)` durante 90 ms |
 | Arrastrando | §8.2 |
-| Completada | Título tachado en `ink-subtle`, tarjeta al 70 %, franja de prioridad en `line`, casilla en `success` |
+| Completada | Marca de verificación de 16 px en `success` delante del título, título tachado en `ink-subtle`, tarjeta al 70 %, franja de prioridad en `line` |
 | Vencida | Cápsula de fecha en rojo con icono de aviso; la tarjeta no cambia de fondo |
 | Recién creada / movida | Destello `primary-soft` de 1200 ms |
 | Eliminándose | §6.2 |
@@ -958,8 +1050,9 @@ en el velo o deslizamiento.
 - Rótulo «Listas» en versalitas de 11 px `ink-subtle`.
 - Fila «Todas las tareas» (icono de bandeja) siempre primera.
 - Cada fila: punto de color de 8 px · nombre · contador a la derecha en
-  `ink-subtle` · menú `⋯` al hacer hover o al enfocar (Renombrar, Cambiar color
-  ›, divisor, Eliminar en peligro sutil).
+  `ink-subtle` · menú `⋯` al hacer hover o al enfocar (Renombrar o cambiar el
+  color, divisor, Eliminar en peligro sutil). Nombre y color se editan en el
+  mismo diálogo: son dos campos, no merecen dos caminos.
 - Altura de fila 36 px en escritorio, 44 px en móvil; radio `sm`.
 - **Activa**: fondo `primary-soft`, barra izquierda de 3 px `primary`, texto
   peso 500, `aria-current="page"`. Es selección, no foco (§7.2).
@@ -1039,6 +1132,8 @@ solo y el único control que ofrece es el que deshace.
 - La acción va subrayada y en peso 600, heredando la tinta del aviso; es el
   único elemento interactivo, así que no compite con nada.
 - **Auto-cierre a los 6 s**, tiempo suficiente para leer y alcanzar «Deshacer».
+  El reloj se detiene mientras el puntero esté encima o el foco esté dentro, y se
+  reanuda al salir: nadie debe perseguir un «Deshacer» que huye.
 - La superficie oscura (`tooltip`) es deliberada: hace que el aviso se lea como
   una capa del sistema y no como una tarjeta más del tablero.
 - Región `role="status"` con `aria-live="polite"`: se anuncia sin interrumpir.
@@ -1095,20 +1190,39 @@ pintan tres columnas con su encabezado real y dos tarjetas fantasma cada una. El
 contenedor lleva `aria-busy="true"` y un texto invisible «Cargando el tablero».
 No se usan esqueletos para los datos: se leen del navegador de forma síncrona.
 
-### 10.18 Casilla de completar
+### 10.18 Texto de origen del usuario
 
-20×20 px, radio `xs`, borde 1.5 px `line-strong`, área táctil 44×44 px.
+Regla transversal, no de un componente: **todo texto que escribe el usuario se
+trata igual en toda la aplicación**. Afecta al título de la tarea, a su
+descripción, al nombre de la lista y a cada eco de esos textos en diálogos,
+menús, avisos breves, confirmaciones y títulos emergentes.
 
-| Estado | Aspecto |
-|---|---|
-| Reposo | Vacía, borde `line-strong` |
-| Hover | Borde `success`, fondo `success-soft` |
-| Foco | Anillo global |
-| Marcada | Fondo `success`, marca de verificación `on-success` dibujada en 150 ms |
-| Deshabilitada | No existe |
-
-Su `aria-label` es explícito: «Marcar como completada: {título}» / «Reabrir:
-{título}».
+- **El relleno interior es intocable.** Ningún glifo llega al borde del
+  contenedor: el texto se parte antes de invadir el relleno.
+- **Corte de palabra como último recurso**: `overflow-wrap: anywhere` en todo
+  contenedor de texto del usuario. Las palabras se reparten por espacios mientras
+  se pueda; solo la que no cabe entera se parte.
+- **Los contenedores flexibles llevan `min-width: 0`.** Sin eso el hijo se niega
+  a encoger y el corte no llega a ocurrir: es la causa habitual del desbordamiento.
+- **Nunca hay desplazamiento horizontal.** Ni en el diálogo, ni en la tarjeta, ni
+  en la columna. El único desplazamiento admitido es el vertical del cuerpo del
+  diálogo y el de la columna.
+- **Multilínea** (descripción en el detalle): se muestra íntegra, con
+  `white-space: pre-wrap` para respetar los saltos de línea que escribió el
+  usuario, y con el corte de palabra activo.
+- **Una sola línea** (nombre de lista en su fila, título en un menú, contexto de
+  un resultado): elipsis con `text-overflow`, y el texto completo disponible en
+  el título emergente y en el nombre accesible.
+- **Citas dentro de mensajes** (avisos y confirmaciones que nombran la tarea o la
+  lista): entre comillas y recortadas a una línea con elipsis, para que el
+  mensaje no se convierta en un párrafo.
+- Los límites del modelo (120 caracteres de título, 2000 de descripción, 60 de
+  nombre de lista) ponen el techo; esta regla cubre lo que el techo no evita: una
+  única palabra larguísima dentro del límite.
+- **Comprobación**: pegar 200 caracteres sin espacios en el título, en la
+  descripción y en el nombre de una lista no debe producir desplazamiento
+  horizontal en ninguna pantalla ni en ningún ancho, ni descolocar la tarjeta, el
+  detalle, el panel de listas o el aviso que los cita.
 
 ---
 
@@ -1137,41 +1251,40 @@ Se descarta el desplazamiento horizontal del tablero: con tres columnas fijas
 —los tres estados del modelo— siempre caben, y una barra horizontal en una
 aplicación de teclado es una molestia.
 
-### 11.0.1 Modelo de estado: qué significa cada control
+### 11.0.1 Modelo de estado: una sola verdad, la columna
 
 Una tarea tiene **un solo estado** (`Por hacer`, `En progreso`, `Completada`) y
-la columna en la que está **es** ese estado. No hay un «completada» paralelo a
-la columna: marcar una tarea como completada es moverla a `Completada`.
+la columna en la que está **es** ese estado (K2). Completar una tarea no es
+marcar una propiedad aparte: es moverla a «Completadas».
 
-De ahí se derivan las tres formas de cambiarlo, que hacen cosas distintas a
-propósito:
+De ahí la regla dura: **la tarjeta no lleva ningún control que declare el estado
+por su cuenta**. La casilla que tuvo antes duplicaba la verdad de la columna y,
+al marcarla, la tarjeta saltaba a otra columna sin que nada lo anunciara; se
+retira. Las formas de cambiar el estado son estas y todas dejan a la vista dónde
+acabó la tarjeta:
 
-| Control | Qué hace | Por qué existe |
+| Camino | Qué hace | Por qué existe |
 |---|---|---|
-| **Arrastrar** | Mueve la tarjeta a donde se suelte | Es el gesto directo: la posición final es la que se ve |
-| **«Mover a …»** del menú | Lleva la tarea al estado elegido | El camino explícito y accesible sin ratón, y el único que va a `En progreso` en un paso |
-| **Casilla de la tarjeta** | Atajo a `Completada` desde cualquier columna | Completar es la acción más frecuente con diferencia; obligar a arrastrar hasta la tercera columna para algo tan común sería un castigo |
+| **Arrastrar a otra columna** | La tarea pasa al estado de esa columna, en la posición donde se suelte | Es el gesto directo: el destino se elige mirándolo (§8) |
+| **«Completar» / «Reabrir»** del menú de la tarjeta | Lleva la tarea a «Completadas», o la devuelve al inicio de «Por hacer» | Completar es la acción más frecuente; merece una pulsación desde cualquier columna, sin arrastrar |
+| **«Mover a ›»** del menú | Lleva la tarea a cualquiera de los otros dos estados | El camino explícito, y el único que llega a «En progreso» en un paso sin ratón |
+| **`Espacio`** sobre la tarjeta enfocada | Igual que «Completar» / «Reabrir» | El equivalente de teclado de la acción más frecuente |
 
-La casilla es un **atajo**, no un interruptor de una propiedad independiente, y
-por eso mueve la tarjeta de columna. Ese salto sorprende si ocurre en silencio:
-la tarjeta desaparece de donde estaba mirando el usuario. Por eso la casilla
-**siempre va acompañada de un aviso breve** (§10.12):
+**Aviso breve al completar y al reabrir.** Cambiar a «Completadas» o salir de
+ahí mueve la tarjeta fuera de donde el usuario estaba mirando, así que **por
+cualquiera de los cuatro caminos —arrastre incluido— aparece el aviso** (§10.12):
 
 > Tarea completada · **Deshacer**
+>
+> Tarea reabierta en «Por hacer» · **Deshacer**
 
-Reglas del aviso:
-
-- Aparece al completar **y** al reabrir, con el texto correspondiente («Tarea
-  completada» / «Tarea reabierta»): el movimiento sorprende en ambos sentidos.
-- «Deshacer» revierte la acción entera, incluida la posición que tenía la tarea
-  en su columna de origen.
-- Arrastrar **no** muestra aviso: ahí el usuario ve el resultado en el mismo
-  gesto, y anunciar lo que acaba de hacer con la mano sobra. El destello de la
-  tarjeta al soltar (§8.2) ya confirma el resultado.
-- «Mover a …» tampoco lo muestra: la orden nombra el destino antes de ejecutarse.
-
-La casilla marcada usa el verde `success` con la marca de verificación, y el
-título pasa a tachado en `ink-subtle`; el color nunca va solo (§3).
+- «Deshacer» revierte la acción entera, incluida la posición exacta que la tarea
+  tenía en su columna de origen.
+- Los movimientos que **no** entran ni salen de «Completadas» (por ejemplo, de
+  «Por hacer» a «En progreso») no muestran aviso: el destello de la tarjeta al
+  soltar (§8.2) y la orden del menú, que nombra el destino, ya lo dicen todo.
+- El aspecto de tarea completada (marca de verificación, tachado, opacidad) llega
+  a la vez que el movimiento; el color nunca va solo (§3.5).
 
 ### 11.1 Tablero (`/tablero` y `/tablero/:listId`)
 
@@ -1241,6 +1354,22 @@ y «Crear tarea» / «Guardar cambios» (primario, con `kbd` `Ctrl` `Enter`). Al
 editar, aparece además en el pie a la izquierda «Eliminar» en peligro sutil.
 Bajo el pie, en `text-2xs` `ink-subtle`: «Creada el 12 jul 2026 · Editada hace
 2 h» — con año, siempre.
+
+**Detalle de la tarea**, 520 px: abrir una tarjeta (K9) muestra primero el
+detalle, no el formulario. Es una lectura cómoda —descripción íntegra, estado,
+prioridad, lista, fecha límite y marcas de tiempo— con las acciones al pie:
+«Eliminar», «Duplicar», «Completar»/«Reabrir» y «Editar», que abre este mismo
+diálogo en modo edición.
+
+Se separa la lectura de la edición porque son dos intenciones distintas y la
+frecuente es leer: abrir una tarjeta para consultar un detalle no debería dejar
+al usuario dentro de un formulario con el texto seleccionado y el riesgo de
+cambiarlo sin querer. Es lo que hacen Trello y Jira, donde la tarjeta abre una
+ficha y cada campo se edita al pulsarlo.
+
+El título y la descripción se rigen por §10.18: el texto se parte, respeta el
+relleno y jamás produce desplazamiento horizontal dentro del panel; si la
+descripción es larga, el que se desplaza es el cuerpo del diálogo, en vertical.
 
 **Lista (crear/renombrar)**, 420 px: nombre (1–60) y selector de color con seis
 muestras de 28 px, marcadas con verificación y nombre accesible («Color azul»).
@@ -1363,7 +1492,7 @@ Objetivos comprobables, además de los contrastes de §2.6:
   columna son `h2`.
 - **Etiquetas en español y explícitas**: «Buscar tareas», «Nueva tarea»,
   «Filtrar por prioridad», «Abrir el menú de la tarea {título}», «Eliminar la
-  lista {nombre}», «Reordenar la tarea {título}».
+  lista {nombre}», «Mover la tarea {título}».
 - **Regiones activas**: `polite` para el resumen de resultados y los contadores;
   `assertive` para errores y para los anuncios de arrastre; nunca dos anuncios a
   la vez.
@@ -1376,7 +1505,7 @@ Objetivos comprobables, además de los contrastes de §2.6:
   mover una tarea entre columnas se puede hacer desde su menú.
 - **Zoom**: la interfaz aguanta 200 % sin desplazamiento horizontal en móvil;
   las columnas se apilan por debajo de 768 px equivalentes, que es lo que ocurre
-  al ampliar.
+  al ampliar. El texto del usuario nunca abre desplazamiento horizontal (§10.18).
 
 ---
 
@@ -1415,9 +1544,9 @@ documenta para que el sistema de hoy la admita sin rediseño.
 - Al deshacer, aviso breve informativo: «Se deshizo: eliminar tarea», y la
   tarjeta afectada recibe el destello `primary-soft` para que se vea dónde
   reapareció.
-- A partir de esta fase, los avisos breves de acciones destructivas usan la
-  ranura de acción ya prevista en §10.12: «Tarea eliminada — **Deshacer**». El
-  botón de acción se pinta en el color de la variante, nunca en violeta.
+- Los avisos de las acciones destructivas suman «Deshacer» en la misma ranura que
+  ya usa el de completar (§11.0.1): «Tarea eliminada · **Deshacer**». La acción
+  hereda la tinta del aviso, nunca se pinta en violeta.
 - El movimiento de tarjetas con `Ctrl`+flechas se anuncia por región activa igual
   que el arrastre (§8.4).
 
@@ -1436,4 +1565,8 @@ documenta para que el sistema de hoy la admita sin rediseño.
 | 7 | Tres columnas fijas y responsivas, sin desplazamiento horizontal | Tablero con desplazamiento lateral estilo Trello | Los estados son tres y siempre caben; el desplazamiento lateral estorba en una aplicación de teclado |
 | 8 | Conmutador de tema como menú de tres opciones en la barra | Interruptor de dos posiciones | Un interruptor no puede expresar «seguir al sistema», que es el valor inicial |
 | 9 | Fechas siempre con año en cápsulas de vencimiento | Solo distancia relativa («hace 2 días») | La tarjeta se lee fuera de contexto; la distancia acompaña, no sustituye |
-| 10 | Los avisos breves del MVP no llevan «Deshacer» | Anunciar la función desde ya | Deshacer no está expuesto todavía; no se muestran funciones que no existen |
+| 10 | El aviso de completar y reabrir lleva «Deshacer» | Aviso sin acción | Ese cambio mueve la tarjeta fuera de la vista del usuario; el camino de vuelta tiene que estar donde se mira. El mecanismo de deshacer existe desde el primer día |
+| 11 | Las tres columnas son destinos de arrastre conectados entre sí | Arrastrar solo dentro de la columna | Mover una tarjeta de columna es *la* interacción de un tablero; sin ella, las columnas son decoración (K3) |
+| 12 | La tarjeta no lleva casilla de completar | Casilla como atajo a «Completadas» | La columna ya expresa el estado. Dos portadores de la misma verdad se contradicen, y una casilla que hace saltar la tarjeta de columna no se explica sola (K2) |
+| 13 | Completar tiene su entrada propia en el menú de la tarjeta | Obligar a arrastrar o a usar «Mover a ›» | Es la acción más frecuente; quitarle la casilla no puede significar encarecerla |
+| 14 | Corte de palabra en todo texto escrito por el usuario | Recortar con elipsis y aceptar el desbordamiento | Una sola palabra larga no puede romper un diálogo ni abrir desplazamiento horizontal (K16) |

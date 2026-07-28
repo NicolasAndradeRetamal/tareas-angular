@@ -166,11 +166,11 @@ function sanitizeTask(raw: unknown, listIds: ReadonlySet<string>): SanitizedTask
   };
 }
 
-/** Groups by (listId, status); items without a valid order are moved to the end. */
+/** Groups by status column; items without a valid order are moved to the end. */
 function resolveTaskOrder(tasks: readonly SanitizedTask[]): Task[] {
   const groups = new Map<string, SanitizedTask[]>();
   for (const task of tasks) {
-    const key = `${task.listId}::${task.status}`;
+    const key = task.status;
     const group = groups.get(key);
     if (group) {
       group.push(task);
@@ -191,7 +191,11 @@ function resolveTaskOrder(tasks: readonly SanitizedTask[]): Task[] {
     withoutOrder.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
     const ordered = [...withOrder, ...withoutOrder];
-    const needsReindex = withoutOrder.length > 0;
+    // Ties would be broken by a random id, leaving the column shuffling on every load.
+    const hasDuplicates = withOrder.some(
+      (task, index) => index > 0 && task.order === withOrder[index - 1].order,
+    );
+    const needsReindex = withoutOrder.length > 0 || hasDuplicates;
     ordered.forEach((task, index) => {
       result.push({ ...task, order: needsReindex ? index * ORDER_STEP : (task.order as number) });
     });

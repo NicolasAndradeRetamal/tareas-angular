@@ -119,7 +119,7 @@ export class TaskCard {
   /** Anywhere on the card opens the detail, except the controls that do their own thing. */
   protected onCardClick(event: MouseEvent): void {
     const target = event.target as HTMLElement | null;
-    if (target?.closest('button, a, input, select, [role="checkbox"]')) return;
+    if (target?.closest('button, a, input, select')) return;
     this.openDetail.emit();
   }
 

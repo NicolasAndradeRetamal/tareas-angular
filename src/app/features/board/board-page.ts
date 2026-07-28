@@ -10,11 +10,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { Router } from '@angular/router';
 import type { CreateTaskInput, UpdateTaskInput } from '../../core/models/board-state';
 import type { List, ListId } from '../../core/models/list';
 import type { Task, TaskId, TaskStatus } from '../../core/models/task';
-import { PRIORITY_LABELS } from '../../core/models/task';
+import { PRIORITY_LABELS, STATUS_LABELS } from '../../core/models/task';
 import { BoardStore } from '../../core/state/board-store';
 import { BoardViewStore } from '../../core/state/board-view-store';
 import type { StatusFilter } from '../../core/state/board-view-store';
@@ -71,6 +72,7 @@ const PERSISTENCE_MESSAGES = {
 @Component({
   selector: 'app-board-page',
   imports: [
+    CdkDropListGroup,
     ListSidebar,
     BoardToolbar,
     TaskColumn,
@@ -124,6 +126,7 @@ export class BoardPage {
   protected readonly detailTaskId = signal<TaskId | null>(null);
   protected readonly toastMessage = signal<string | null>(null);
   private toastTimer: ReturnType<typeof setTimeout> | null = null;
+  private dragCancelled = false;
 
   private readonly explicitFocusId = signal<TaskId | null>(null);
   protected readonly highlightedTaskId = signal<TaskId | null>(null);
@@ -336,7 +339,14 @@ export class BoardPage {
     if (!before) return;
 
     this.board.toggleTaskDone(id);
-    this.showToast(before.status === 'done' ? 'Tarea reabierta' : 'Tarea completada');
+    const after = this.board.taskIndex().get(id);
+    if (after) this.announceStatusChange(before.status, after.status);
+  }
+
+  protected changeStatus(payload: { id: TaskId; status: TaskStatus }): void {
+    const before = this.board.taskIndex().get(payload.id);
+    this.board.setTaskStatus(payload.id, payload.status);
+    if (before) this.announceStatusChange(before.status, payload.status);
   }
 
   protected undoLastAction(): void {
@@ -388,10 +398,6 @@ export class BoardPage {
     if (id !== null) this.toggleDone(id);
   }
 
-  protected changeStatus(payload: { id: TaskId; status: TaskStatus }): void {
-    this.board.setTaskStatus(payload.id, payload.status);
-  }
-
   protected duplicateTask(id: TaskId): void {
     const task = this.board.taskIndex().get(id);
     if (!task) return;
@@ -422,7 +428,7 @@ export class BoardPage {
   protected onListFormSubmit(result: ListFormResult): void {
     const id = this.editingListId();
     if (this.listFormMode() === 'edit' && id !== null) {
-      this.board.renameList(id, result.name);
+      this.board.updateList(id, { name: result.name, color: result.color });
       return;
     }
     const created = this.board.createList({ name: result.name, color: result.color });
@@ -466,6 +472,11 @@ export class BoardPage {
   // --- Drag and drop ---
 
   protected onReordered(status: TaskStatus, event: { id: TaskId; targetIndex: number }): void {
+    if (this.dragCancelled) {
+      this.dragCancelled = false;
+      return;
+    }
+
     const task = this.board.taskIndex().get(event.id);
     if (!task) return;
 
@@ -478,6 +489,14 @@ export class BoardPage {
     const targetIndex = resolveDropIndex(task, siblings, visible, event.targetIndex);
     this.board.moveTask(event.id, { listId: task.listId, status, targetIndex });
     this.flashTask(event.id);
+    this.announceStatusChange(task.status, status);
+  }
+
+  /** Entering or leaving «Completada» moves the card out of sight; the rest is self-evident. */
+  private announceStatusChange(from: TaskStatus, to: TaskStatus): void {
+    if (from === to) return;
+    if (to === 'done') this.showToast('Tarea completada');
+    else if (from === 'done') this.showToast(`Tarea reabierta en «${STATUS_LABELS[to]}»`);
   }
 
   private flashTask(id: TaskId): void {
@@ -523,7 +542,7 @@ export class BoardPage {
         this.openDetail(task.id);
         break;
       case ' ':
-        this.board.toggleTaskDone(task.id);
+        this.toggleDone(task.id);
         break;
       case 'Delete':
         this.requestDeleteTask(task.id);
@@ -582,6 +601,14 @@ export class BoardPage {
 
   @HostListener('document:keydown', ['$event'])
   protected onGlobalKeydown(event: KeyboardEvent): void {
+    // Esc while a card is in the air cancels the move. The CDK has no cancel of its
+    // own, so the drop is let through and then ignored: nothing changes.
+    if (event.key === 'Escape' && document.querySelector('.cdk-drag-preview') !== null) {
+      this.dragCancelled = true;
+      event.preventDefault();
+      return;
+    }
+
     if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
 
     if (isEditableTarget(event.target)) {

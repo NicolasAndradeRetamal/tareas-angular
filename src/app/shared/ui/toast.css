@@ -24,6 +24,7 @@
 
 .toast__message {
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .toast__separator {

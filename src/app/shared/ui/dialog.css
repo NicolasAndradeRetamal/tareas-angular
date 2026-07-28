@@ -24,7 +24,9 @@ dialog::backdrop {
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--line);
   max-height: 85vh;
+  /* Vertical only: user text must wrap, never push the panel sideways. */
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 dialog[open] .dialog__panel {

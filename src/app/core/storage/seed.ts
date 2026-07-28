@@ -137,12 +137,13 @@ export function createSeedBoard(now: Date): BoardState {
   ];
   const listIdByName = new Map(lists.map((list) => [list.name, list.id]));
 
-  const orderCounters = new Map<string, number>();
+  // One counter per column, not per list: order ranks the whole column, and equal
+  // values would leave the board reshuffling itself between loads.
+  const orderCounters = new Map<TaskStatus, number>();
   const tasks: Task[] = SEED_TASKS.map((spec) => {
     const listId = listIdByName.get(spec.listName) as string;
-    const columnKey = `${listId}::${spec.status}`;
-    const order = orderCounters.get(columnKey) ?? 0;
-    orderCounters.set(columnKey, order + ORDER_STEP);
+    const order = orderCounters.get(spec.status) ?? 0;
+    orderCounters.set(spec.status, order + ORDER_STEP);
 
     const dueDate = spec.dueOffset === null ? null : todayIso(addDays(now, spec.dueOffset));
     const isDone = spec.status === 'done';

@@ -1271,7 +1271,7 @@ El MVP se construye ahora, pero el modelo y la arquitectura de estado ya admiten
 lo siguiente **sin reescritura**. Para cada punto: qué queda listo hoy y qué
 faltará añadir.
 
-### 13.1 Vista kanban con arrastre entre columnas
+### 13.1 Vista kanban con arrastre entre columnas — ya implementado
 
 **Listo hoy**
 
@@ -1288,15 +1288,20 @@ faltará añadir.
   reordenar, así que el patrón de arrastre está rodado.
 - `task-card` es un componente tonto: la vista kanban lo reutiliza sin tocarlo.
 
+**Ya construido**
+
+- Las tres columnas forman un `cdkDropListGroup`: una tarjeta se arrastra a
+  cualquiera de ellas y el estado pasa a ser el de la columna donde se suelta.
+- Estados visuales del arrastre: hueco de destino, vista previa elevada, realce
+  de la columna bajo el puntero y destello al soltar.
+- No hay conmutador entre vista de lista y vista kanban: el tablero es uno solo
+  y responsivo, con las columnas apiladas por debajo de 768 px.
+
 **Faltará añadir**
 
-- Un componente de tablero por columnas con `cdkDropListGroup` conectando las
-  tres listas.
-- Estados visuales de arrastre (marcador de destino, tarjeta fantasma, elevación)
-  y animaciones de entrada y salida.
-- Conmutador entre vista de lista y vista kanban, y recordar la preferencia.
 - Arrastre accesible por teclado (mover tarjeta con `Ctrl` + flechas), que el
   modelo ya soporta porque es la misma llamada a `moveTask`.
+- Anuncios del arrastre por `LiveAnnouncer` en las cinco fases del gesto.
 
 ### 13.2 Paleta de comandos (Ctrl+K)
 

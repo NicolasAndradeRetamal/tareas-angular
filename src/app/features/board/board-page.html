@@ -222,7 +222,7 @@
         </div>
       }
 
-      <div class="columns" (keydown)="onBoardKeydown($event)">
+      <div class="columns" cdkDropListGroup (keydown)="onBoardKeydown($event)">
         @for (column of view.columns(); track column.status) {
           <app-task-column
             [column]="column"

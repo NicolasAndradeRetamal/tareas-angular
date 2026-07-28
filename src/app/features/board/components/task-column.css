@@ -49,10 +49,15 @@
   transition: background-color var(--duration-fast) linear;
 }
 
-.task-column__body.cdk-drop-list-dragging {
+/* Only the column under the pointer, so the destination is never ambiguous. */
+:host(.task-column--drop-target) .task-column__body {
   background: var(--hover);
   outline: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
   outline-offset: -1px;
+}
+
+:host(.task-column--drop-target) .task-column__title {
+  color: var(--ink);
 }
 
 .task-column__empty {

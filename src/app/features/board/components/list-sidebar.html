@@ -25,7 +25,9 @@
         (click)="selectList.emit(entry.list.id)"
       >
         <span class="h-2 w-2 shrink-0 rounded-full" [class]="dotClass[entry.list.color]"></span>
-        <span class="flex-1 truncate text-left">{{ entry.list.name }}</span>
+        <span class="min-w-0 flex-1 truncate text-left" [title]="entry.list.name">{{
+          entry.list.name
+        }}</span>
         <span class="list-row__count" data-numeric>{{ entry.count }}</span>
       </button>
 
@@ -60,7 +62,7 @@
             (click)="runAction(() => renameList.emit(entry.list.id))"
           >
             <app-icon name="pencil" [size]="16" />
-            Renombrar
+            Renombrar o cambiar el color
           </button>
           <div class="list-row__menu-divider" role="separator"></div>
           <button

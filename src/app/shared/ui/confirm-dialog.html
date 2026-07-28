@@ -20,7 +20,7 @@
       </svg>
       <h2 [id]="titleId" class="text-lg font-semibold text-ink">{{ title() }}</h2>
     </div>
-    <p [id]="descriptionId" class="mt-3 text-base text-ink-muted">{{ message() }}</p>
+    <p [id]="descriptionId" class="user-text mt-3 text-base text-ink-muted">{{ message() }}</p>
     <div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       <app-button variant="secondary" size="lg" (clicked)="cancelled.emit()">Cancelar</app-button>
       <app-button variant="danger" size="lg" (clicked)="confirmed.emit()">{{
