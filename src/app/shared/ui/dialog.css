@@ -15,6 +15,12 @@ dialog.dialog--confirm {
   max-width: min(92vw, 420px);
 }
 
+/* Anchored near the top, not centered: a command palette reads as a launcher, not a form. */
+dialog.dialog--palette {
+  max-width: min(92vw, 560px);
+  margin: 15vh auto auto;
+}
+
 dialog::backdrop {
   background: var(--scrim);
 }
@@ -27,6 +33,14 @@ dialog::backdrop {
   /* Vertical only: user text must wrap, never push the panel sideways. */
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.dialog--palette .dialog__panel {
+  display: flex;
+  flex-direction: column;
+  /* The palette scrolls its own body; header and footer must stay put. */
+  max-height: min(70vh, 452px);
+  overflow: hidden;
 }
 
 dialog[open] .dialog__panel {
@@ -53,6 +67,17 @@ dialog[open] .dialog__panel {
   .dialog__panel {
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     max-height: 90vh;
+  }
+
+  /* Stays top-anchored on mobile too: a launcher docked to the bottom reads as a sheet. */
+  dialog.dialog--palette {
+    max-width: calc(100% - 2rem);
+    margin: 8vh auto auto;
+  }
+
+  .dialog--palette .dialog__panel {
+    border-radius: var(--radius-lg);
+    max-height: 70vh;
   }
 }
 
