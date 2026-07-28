@@ -6,7 +6,7 @@ import type {
   MoveTaskTarget,
   UpdateTaskInput,
 } from '../models/board-state';
-import type { List, ListId } from '../models/list';
+import type { List, ListColor, ListId } from '../models/list';
 import { LIST_NAME_MAX_LENGTH } from '../models/list';
 import type { MutationKind } from '../models/mutation';
 import type { Task, TaskId, TaskStatus } from '../models/task';
@@ -296,20 +296,33 @@ export class BoardStore {
   }
 
   renameList(id: ListId, name: string): void {
+    this.updateList(id, { name });
+  }
+
+  updateList(id: ListId, changes: { name?: string; color?: ListColor }): void {
     const timestamp = nowIso();
 
     this.commit('rename-list', (current) => {
       const existing = current.lists.find((list) => list.id === id);
       if (!existing) return current;
 
-      const trimmed = name.trim();
-      if (trimmed.length === 0) {
-        throw new Error('List name must not be empty');
+      let nextName = existing.name;
+      if (changes.name !== undefined) {
+        const trimmed = changes.name.trim();
+        if (trimmed.length === 0) {
+          throw new Error('List name must not be empty');
+        }
+        nextName = trimmed.slice(0, LIST_NAME_MAX_LENGTH);
       }
-      const clamped = trimmed.slice(0, LIST_NAME_MAX_LENGTH);
-      if (clamped === existing.name) return current;
+      const nextColor = changes.color ?? existing.color;
+      if (nextName === existing.name && nextColor === existing.color) return current;
 
-      const updated: List = { ...existing, name: clamped, updatedAt: timestamp };
+      const updated: List = {
+        ...existing,
+        name: nextName,
+        color: nextColor,
+        updatedAt: timestamp,
+      };
       return { ...current, lists: current.lists.map((list) => (list.id === id ? updated : list)) };
     });
   }
